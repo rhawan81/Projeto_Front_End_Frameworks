@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1",
+    "titulo": "Trabalho de Algoritmos",
+    "materia": "Algoritmos e Programação",
+    "descricao": "",
+    "prazo": "2026-09-10",
+    "prioridade": "alta",
+    "status": "pendente"
+  },
+  {
+    "id": "2",
+    "titulo": "Prova de Banco de Dados",
+    "materia": "Banco de Dados",
+    "descricao": "",
+    "prazo": "2026-09-05",
+    "prioridade": "media",
+    "status": "pendente"
+  },
+  {
+    "id": "3",
+    "titulo": "Leitura: Capítulo 4",
+    "materia": "Sistemas Operacionais",
+    "descricao": "",
+    "prazo": "2026-09-01",
+    "prioridade": "baixa",
+    "status": "pendente"
+  },
+  {
+    "id": "4",
+    "titulo": "Resumo do Capítulo 2",
+    "materia": "Redes de Computadores",
+    "descricao": "",
+    "prazo": "2026-09-03",
+    "prioridade": "media",
+    "status": "concluida"
+  }
+]
