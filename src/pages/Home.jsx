@@ -4,8 +4,10 @@ import { carregarAtividades } from "../data/storage";
 import { IconeMais } from "../icons";
 
 function formatarData(dataStr) {
-  const [ano, mes, dia] = dataStr.split("-");
-  return `${dia}/${mes}`;
+  if (!dataStr) return "--/--";
+  const partes = dataStr.split("-");
+  if (partes.length < 3) return dataStr;
+  return `${partes[2]}/${partes[1]}`;
 }
 
 const CORES_PRIORIDADE = { alta: "#EF4444", media: "#F59E0B", baixa: "#10B981" };
