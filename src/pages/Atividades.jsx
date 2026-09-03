@@ -5,8 +5,10 @@ import { useToast } from "../toast/ToastContext";
 import { IconeBusca, IconeMais, IconeLapis, IconeLixeira } from "../icons";
 
 function formatarData(dataStr) {
-  const [ano, mes, dia] = dataStr.split("-");
-  return `${dia}/${mes}/${ano}`;
+  if (!dataStr) return "--/--/----";
+  const partes = dataStr.split("-");
+  if (partes.length < 3) return dataStr;
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
 const rotulosPrioridade = { alta: "Alta", media: "Média", baixa: "Baixa" };

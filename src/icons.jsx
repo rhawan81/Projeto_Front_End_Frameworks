@@ -103,3 +103,108 @@ export const IconeVoltar = (p) => (
     <path d="M10 3 5 8l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+export const IconeEscudo = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <path
+      d="M9 2.25L3.5 4.5V8.5C3.5 12.2 5.8 15.6 9 16.5C12.2 15.6 14.5 12.2 14.5 8.5V4.5L9 2.25Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const IconeUsuario = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <circle cx="9" cy="5.5" r="3" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M3.5 15.5C3.5 12.7 6 10.5 9 10.5C12 10.5 14.5 12.7 14.5 15.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const IconeUsuarios = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <circle cx="7" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M2.5 14.5C2.5 12 4.5 10 7 10C9.5 10 11.5 12 11.5 14.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12.5 4C13.6 4.3 14.5 5.3 14.5 6.5C14.5 7.7 13.6 8.7 12.5 9"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+    <path
+      d="M13.5 11.5C15 12.2 15.5 13.3 15.5 14.5"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const IconeSair = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <path
+      d="M6.5 15H3.5A1.5 1.5 0 0 1 2 13.5V4.5A1.5 1.5 0 0 1 3.5 3H6.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M12 12.5L15.5 9L12 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M15.5 9H6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+export const IconeCadeado = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <rect x="3.5" y="7.5" width="11" height="8" rx="1.8" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M6 7.5V5.5C6 3.8 7.3 2.5 9 2.5C10.7 2.5 12 3.8 12 5.5V7.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const IconeNuvem = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <path
+      d="M4.5 14.5C2.8 14.5 1.5 13.2 1.5 11.5C1.5 9.9 2.7 8.6 4.2 8.5C4.7 5.7 7.1 3.5 10 3.5C13.2 3.5 15.8 6 15.9 9.1C16.9 9.5 17.5 10.4 17.5 11.5C17.5 13.2 16.2 14.5 14.5 14.5H4.5Z"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const IconeCheck = (p) => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" {...p}>
+    <path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export const IconeAlerta = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <path
+      d="M9 2.5L2 15H16L9 2.5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M9 7.5V10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="9" cy="12.8" r="0.8" fill="currentColor" />
+  </svg>
+);
