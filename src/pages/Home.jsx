@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { carregarAtividades } from "../data/storage";
+import { useAuth } from "../auth/AuthContext";
 import { IconeMais } from "../icons";
 
 function formatarData(dataStr) {
@@ -13,6 +14,7 @@ function formatarData(dataStr) {
 const CORES_PRIORIDADE = { alta: "#EF4444", media: "#F59E0B", baixa: "#10B981" };
 
 function Home() {
+  const { usuario } = useAuth();
   const [atividades, setAtividades] = useState([]);
 
   useEffect(() => {
@@ -44,10 +46,12 @@ function Home() {
     return `${CORES_PRIORIDADE[chave]} ${inicio}deg ${fim}deg`;
   });
 
+  const primeiroNome = usuario?.nome ? usuario.nome.split(" ")[0] : "Estudante";
+
   return (
-    <section className="dashboard">
-      <div className="dashboard-topo">
-        <h1>Dashboard</h1>
+    <div className="dashboard">
+      <div className="dashboard-cabecalho">
+        <h1>Olá, {primeiroNome}! 👋</h1>
         <p className="dashboard-proposito">
           Acompanhe suas atividades acadêmicas, prazos e prioridades em um só lugar.
         </p>

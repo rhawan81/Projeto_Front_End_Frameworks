@@ -62,6 +62,13 @@ export const IconeSino = (p) => (
   </svg>
 );
 
+export const IconeRelogio = (p) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...p}>
+    <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M9 5v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
 export const IconeBusca = (p) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" {...p}>
     <circle cx="7" cy="7" r="4.3" stroke="currentColor" strokeWidth="1.5" />
