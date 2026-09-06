@@ -4,7 +4,6 @@ import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../toast/ToastContext";
 import { useTheme } from "../theme/ThemeContext";
 import {
-  IconeEscudo,
   IconeUsuario,
   IconeCadeado,
   IconeSol,
@@ -115,18 +114,6 @@ export default function Login() {
     }
   }
 
-  // Atalhos de demonstração para facilitar testes do avaliador
-  function preencherEEntrar(email, senha) {
-    setForm((atual) => ({ ...atual, email, senha }));
-    setModoCadastro(false);
-    setErroGeral("");
-
-    const res = login(email, senha);
-    if (res.sucesso) {
-      mostrarToast(`Entrando como ${res.usuario.papel === "admin" ? "Administrador" : "Estudante"}...`);
-      navigate(deOndeVem, { replace: true });
-    }
-  }
 
   return (
     <div className="login-container">
@@ -290,38 +277,6 @@ export default function Login() {
           )}
         </div>
 
-        {/* Seção de Atalhos Rápidos para Avaliação Acadêmica */}
-        <div className="login-atalhos-demo">
-          <div className="divisor-com-texto">
-            <span>Acesso Rápido para Avaliação</span>
-          </div>
-
-          <div className="botoes-demo-grid">
-            <button
-              type="button"
-              className="botao-demo botao-demo-aluno"
-              onClick={() => preencherEEntrar("aluno@estudos.com", "aluno123")}
-            >
-              <IconeUsuario />
-              <div className="demo-info">
-                <strong>Entrar como Aluno</strong>
-                <small>aluno@estudos.com</small>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="botao-demo botao-demo-admin"
-              onClick={() => preencherEEntrar("admin@estudos.com", "admin123")}
-            >
-              <IconeEscudo />
-              <div className="demo-info">
-                <strong>Entrar como ADM</strong>
-                <small>admin@estudos.com</small>
-              </div>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

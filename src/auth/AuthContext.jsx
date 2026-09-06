@@ -4,21 +4,24 @@ import { createContext, useContext, useEffect, useState } from "react";
 const CHAVE_SESSAO = "organizador-estudos:auth";
 const CHAVE_USUARIOS = "organizador-estudos:usuarios";
 
-// Lista inicial de usuários pré-cadastrados (Demo acadêmica)
+// Credenciais fixas do Administrador do sistema
+export const ADMIN_PADRAO = {
+  id: "usr-admin",
+  nome: "Prof. Henrique (ADM)",
+  email: "admin@estudos.com",
+  senha: "admin123", // Senha fixa do administrador
+  papel: "admin",
+  status: "ativo",
+  criadoEm: "2026-08-01",
+};
+
+// Lista inicial de estudantes pré-cadastrados (Integrantes da equipe do projeto)
 const USUARIOS_INICIAIS = [
-  {
-    id: "usr-1",
-    nome: "Prof. Henrique (ADM)",
-    email: "admin@estudos.com",
-    senha: "admin123",
-    papel: "admin", // admin ou estudante
-    status: "ativo",
-    criadoEm: "2026-08-01",
-  },
+  ADMIN_PADRAO,
   {
     id: "usr-2",
     nome: "Emilly Silva",
-    email: "aluno@estudos.com",
+    email: "emilly@estudos.com",
     senha: "aluno123",
     papel: "estudante",
     status: "ativo",
@@ -26,21 +29,30 @@ const USUARIOS_INICIAIS = [
   },
   {
     id: "usr-3",
-    nome: "Lucas Martins",
-    email: "lucas@estudos.com",
-    senha: "senha123",
+    nome: "Michel Santos",
+    email: "michel@estudos.com",
+    senha: "aluno123",
     papel: "estudante",
     status: "ativo",
     criadoEm: "2026-08-15",
   },
   {
     id: "usr-4",
-    nome: "Carolina Dias",
-    email: "carolina@estudos.com",
-    senha: "senha123",
+    nome: "Mylena Oliveira",
+    email: "mylena@estudos.com",
+    senha: "aluno123",
     papel: "estudante",
     status: "ativo",
     criadoEm: "2026-08-20",
+  },
+  {
+    id: "usr-5",
+    nome: "Aluno Teste",
+    email: "aluno@estudos.com",
+    senha: "aluno123",
+    papel: "estudante",
+    status: "ativo",
+    criadoEm: "2026-08-25",
   },
 ];
 
@@ -51,7 +63,23 @@ export function AuthProvider({ children }) {
   const [usuarios, setUsuarios] = useState(() => {
     try {
       const salvo = localStorage.getItem(CHAVE_USUARIOS);
-      if (salvo) return JSON.parse(salvo);
+      if (salvo) {
+        const parsed = JSON.parse(salvo);
+        if (Array.isArray(parsed)) {
+          // Garante que o admin fixo esteja presente com a senha correta e papel ativo
+          const indexAdmin = parsed.findIndex(
+            (u) => u.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()
+          );
+          if (indexAdmin >= 0) {
+            parsed[indexAdmin] = {
+              ...parsed[indexAdmin],
+              ...ADMIN_PADRAO,
+            };
+            return parsed;
+          }
+          return [ADMIN_PADRAO, ...parsed];
+        }
+      }
     } catch {
       // Caso ocorra erro de parse, retorna padrão
     }
@@ -86,6 +114,30 @@ export function AuthProvider({ children }) {
   // Função para autenticar usuário por e-mail e senha
   function login(email, senha) {
     const emailLimpo = email.trim().toLowerCase();
+
+    // Verificação prioritária do Administrador com senha fixa
+    if (emailLimpo === ADMIN_PADRAO.email.toLowerCase()) {
+      if (senha !== ADMIN_PADRAO.senha) {
+        return { sucesso: false, erro: "Senha incorreta. Tente novamente." };
+      }
+
+      const adminAtual = usuarios.find(
+        (u) => u.email.toLowerCase() === emailLimpo
+      ) || ADMIN_PADRAO;
+
+      const dadosSessao = {
+        id: adminAtual.id || ADMIN_PADRAO.id,
+        nome: adminAtual.nome || ADMIN_PADRAO.nome,
+        email: ADMIN_PADRAO.email,
+        papel: "admin",
+        status: "ativo",
+        criadoEm: adminAtual.criadoEm || ADMIN_PADRAO.criadoEm,
+      };
+
+      setUsuario(dadosSessao);
+      return { sucesso: true, usuario: dadosSessao };
+    }
+
     const encontrado = usuarios.find(
       (u) => u.email.toLowerCase() === emailLimpo
     );
@@ -150,6 +202,11 @@ export function AuthProvider({ children }) {
 
   // Alterna permissão de administrador
   function alternarPapelUsuario(id) {
+    const usuarioAlvo = usuarios.find((u) => u.id === id);
+    if (usuarioAlvo?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
+      return; // A conta mestre do Administrador mantém sempre o perfil admin
+    }
+
     setUsuarios((atuais) =>
       atuais.map((u) => {
         if (u.id !== id) return u;
@@ -167,6 +224,11 @@ export function AuthProvider({ children }) {
 
   // Bloquear / Desbloquear usuário
   function alternarStatusUsuario(id) {
+    const usuarioAlvo = usuarios.find((u) => u.id === id);
+    if (usuarioAlvo?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
+      return; // A conta mestre do Administrador não pode ser bloqueada
+    }
+
     setUsuarios((atuais) =>
       atuais.map((u) => {
         if (u.id !== id) return u;
@@ -180,6 +242,10 @@ export function AuthProvider({ children }) {
   function excluirUsuario(id) {
     if (usuario?.id === id) {
       return { sucesso: false, erro: "Você não pode excluir sua própria conta enquanto estiver logado." };
+    }
+    const usuarioParaExcluir = usuarios.find((u) => u.id === id);
+    if (usuarioParaExcluir?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
+      return { sucesso: false, erro: "A conta principal do Administrador não pode ser excluída." };
     }
     setUsuarios((atuais) => atuais.filter((u) => u.id !== id));
     return { sucesso: true };

@@ -4,6 +4,7 @@ import { useToast } from "../toast/ToastContext";
 import {
   IconeGrade,
   IconeLista,
+  IconeRelogio,
   IconeEngrenagem,
   IconeEscudo,
   IconeSair,
@@ -12,6 +13,7 @@ import {
 const itensPrincipais = [
   { to: "/", label: "Dashboard", icone: IconeGrade, fim: true },
   { to: "/atividades", label: "Atividades", icone: IconeLista },
+  { to: "/pomodoro", label: "Pomodoro", icone: IconeRelogio },
 ];
 
 const itensExtras = [

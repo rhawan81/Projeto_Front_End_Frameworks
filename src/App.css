@@ -1978,4 +1978,346 @@ a {
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 0.5rem;
+}
+
+/* ==========================================================================
+   ESTILOS DO MÓDULO POMODORO
+   ========================================================================== */
+
+.pomodoro-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.pomodoro-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.badge-pomodoro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primario);
+  background: rgba(37, 99, 235, 0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  margin-bottom: 0.35rem;
+}
+
+.pomodoro-subtitulo {
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.botao-testar-som {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.88rem;
+}
+
+.pomodoro-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .pomodoro-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Principal do Timer */
+.card-pomodoro-timer {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 2.5rem 2rem;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.8rem;
+}
+
+.pomodoro-modos {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--fundo);
+  padding: 0.35rem;
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+}
+
+.botao-modo {
+  border: none;
+  background: transparent;
+  color: var(--texto-suave);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: calc(var(--raio) - 2px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.botao-modo:hover {
+  color: var(--texto);
+}
+
+.botao-modo.modo-ativo {
+  background: var(--superficie);
+  color: var(--primario);
+  box-shadow: var(--sombra);
+}
+
+/* Seleção de Matéria */
+.pomodoro-selecao-materia {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pomodoro-selecao-materia label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.pomodoro-selecao-materia select {
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.input-materia-extra {
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+/* Display do Cronômetro */
+.timer-display-circulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  gap: 0.75rem;
+}
+
+.timer-tempo {
+  font-size: 5.5rem;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--texto);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1;
+}
+
+.timer-materia-label {
+  font-size: 1.05rem;
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+
+.barra-progresso-fundo {
+  width: 100%;
+  height: 8px;
+  background: var(--fundo);
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid var(--borda);
+  margin-top: 0.5rem;
+}
+
+.barra-progresso-preenchimento {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primario), #3b82f6);
+  transition: width 0.3s ease;
+  border-radius: 9999px;
+}
+
+/* Controles */
+.pomodoro-controles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.botao-timer {
+  border: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 0.85rem 2.5rem;
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.botao-iniciar {
+  background: var(--primario);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.botao-iniciar:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.botao-pausar {
+  background: #f59e0b;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.botao-pausar:hover {
+  filter: brightness(1.1);
+}
+
+.botao-reiniciar {
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Card Lateral */
+.card-pomodoro-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resumo-pomodoro-hoje {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.card-metrica-pomo {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 1.2rem;
+  text-align: center;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.metrica-numero {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primario);
+}
+
+.metrica-legenda {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+}
+
+.historico-pomodoro-bloco {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 1.5rem;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.historico-pomodoro-bloco h3 {
+  font-size: 1rem;
+  color: var(--texto);
+  margin: 0;
+}
+
+.texto-sem-historico {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.lista-historico-pomo {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item-historico-pomo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.8rem;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: calc(var(--raio) - 2px);
+}
+
+.item-historico-pomo strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--texto);
+}
+
+.item-historico-pomo small {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.badge-tempo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.link-limpar-historico {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  align-self: flex-start;
+  padding: 0;
+}
+
+.link-limpar-historico:hover {
+  filter: brightness(0.9);
 }

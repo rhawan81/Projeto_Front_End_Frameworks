@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Atividades from "./pages/Atividades";
 import AtividadeForm from "./pages/AtividadeForm";
 import Configuracoes from "./pages/Configuracoes";
+import Pomodoro from "./pages/Pomodoro";
 import EmBreve from "./pages/EmBreve";
 import "./App.css";
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/atividades" element={<Atividades />} />
         <Route path="/atividades/nova" element={<AtividadeForm />} />
         <Route path="/atividades/:id/editar" element={<AtividadeForm />} />
+        <Route path="/pomodoro" element={<Pomodoro />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
         
         {/* Rota administrativa exclusiva para perfil de Administrador (ADM) */}
