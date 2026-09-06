@@ -49,7 +49,7 @@ function Home() {
   const primeiroNome = usuario?.nome ? usuario.nome.split(" ")[0] : "Estudante";
 
   return (
-    <div className="dashboard">
+    <section className="dashboard">
       <div className="dashboard-cabecalho">
         <h1>Olá, {primeiroNome}! 👋</h1>
         <p className="dashboard-proposito">
