@@ -5,12 +5,21 @@ import { IconeRelogio, IconeSino } from "../icons";
 
 const CHAVE_HISTORICO_POMODORO = "organizador-estudos:pomodoro-historico";
 
-// Modos de Pomodoro em segundos
+// Modos padrão do Pomodoro
 const MODOS = {
   foco: { rotulo: "Foco", segundos: 25 * 60, cor: "var(--cor-destaque, #2563eb)" },
   pausaCurta: { rotulo: "Pausa Curta", segundos: 5 * 60, cor: "#10b981" },
   pausaLonga: { rotulo: "Pausa Longa", segundos: 15 * 60, cor: "#8b5cf6" },
 };
+
+// Opções rápidas de tempo para o modo de foco (incluindo 1 min para testes rápidos)
+const OPCOES_FOCO = [
+  { rotulo: "1 min (Teste)", segundos: 60 },
+  { rotulo: "5 min", segundos: 5 * 60 },
+  { rotulo: "15 min", segundos: 15 * 60 },
+  { rotulo: "25 min (Padrão)", segundos: 25 * 60 },
+  { rotulo: "50 min", segundos: 50 * 60 },
+];
 
 /**
  * Emite sinal sonoro suave utilizando a Web Audio API nativa.
@@ -50,9 +59,33 @@ function tocarAlarmeFim() {
   }
 }
 
+/**
+ * Formata o total de segundos de estudo de forma humanizada e precisa.
+ * Exemplos: "45 seg", "1 min", "2m 30s", "50 min"
+ */
+function formatarTempoDedicado(segundosTotais) {
+  if (!segundosTotais || segundosTotais === 0) return "0 min";
+  if (segundosTotais < 60) return `${segundosTotais} seg`;
+  const minutos = Math.floor(segundosTotais / 60);
+  const segundosRestantes = segundosTotais % 60;
+  if (segundosRestantes === 0) return `${minutos} min`;
+  return `${minutos}m ${segundosRestantes}s`;
+}
+
+function formatarTempoBadge(item) {
+  const segs = item.segundos !== undefined ? item.segundos : (item.minutos || 0) * 60;
+  if (segs === 0) return "+1m";
+  if (segs < 60) return `+${segs}s`;
+  const mins = Math.floor(segs / 60);
+  const restoSegs = segs % 60;
+  if (restoSegs === 0) return `+${mins}m`;
+  return `+${mins}m ${restoSegs}s`;
+}
+
 export default function Pomodoro() {
   const { mostrarToast } = useToast();
   const [modo, setModo] = useState("foco");
+  const [duracaoTotal, setDuracaoTotal] = useState(MODOS.foco.segundos);
   const [tempoRestante, setTempoRestante] = useState(MODOS.foco.segundos);
   const [ativo, setAtivo] = useState(false);
   const [materiaSelecionada, setMateriaSelecionada] = useState("");
@@ -105,7 +138,7 @@ export default function Pomodoro() {
     }
 
     return () => clearInterval(intervaloRef.current);
-  }, [ativo, modo, materiaSelecionada, materiaPersonalizada]);
+  }, [ativo, modo, duracaoTotal, materiaSelecionada, materiaPersonalizada]);
 
   function finalizarCiclo() {
     tocarAlarmeFim();
@@ -116,13 +149,14 @@ export default function Pomodoro() {
       const novaSessao = {
         id: `pomo-${Date.now()}`,
         materia: materiaFinal,
-        minutos: Math.round(MODOS[modo].segundos / 60),
+        segundos: duracaoTotal,
+        minutos: Math.max(1, Math.round(duracaoTotal / 60)),
         data: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
         dataCompleta: new Date().toLocaleDateString("pt-BR"),
       };
 
       setHistorico((antigo) => [novaSessao, ...antigo]);
-      mostrarToast(`🍅 Ciclo concluído! Você estudou ${materiaFinal}. Hora de descansar!`, "sucesso");
+      mostrarToast(`🍅 Ciclo concluído! Você estudou ${materiaFinal} (${formatarTempoDedicado(duracaoTotal)}).`, "sucesso");
     } else {
       mostrarToast("☕ Pausa encerrada! Pronto para o próximo ciclo de foco?", "aviso");
     }
@@ -131,7 +165,15 @@ export default function Pomodoro() {
   function trocarModo(novoModo) {
     setModo(novoModo);
     setAtivo(false);
-    setTempoRestante(MODOS[novoModo].segundos);
+    const segs = MODOS[novoModo].segundos;
+    setDuracaoTotal(segs);
+    setTempoRestante(segs);
+  }
+
+  function definirDuracaoFoco(segs) {
+    if (ativo) return;
+    setDuracaoTotal(segs);
+    setTempoRestante(segs);
   }
 
   function alternarTimer() {
@@ -140,7 +182,7 @@ export default function Pomodoro() {
 
   function reiniciarTimer() {
     setAtivo(false);
-    setTempoRestante(MODOS[modo].segundos);
+    setTempoRestante(duracaoTotal);
   }
 
   function formatarTempo(segundos) {
@@ -149,8 +191,15 @@ export default function Pomodoro() {
     return `${String(mins).padStart(2, "0")}:${String(segs).padStart(2, "0")}`;
   }
 
-  const minutosTotaisHoje = historico.reduce((acc, h) => acc + (h.minutos || 0), 0);
-  const progressoPercent = ((MODOS[modo].segundos - tempoRestante) / MODOS[modo].segundos) * 100;
+  // Calcula com exatidão o total de segundos de foco estudados
+  const segundosTotaisHoje = historico.reduce((acc, h) => {
+    const s = h.segundos !== undefined ? h.segundos : (h.minutos || 0) * 60;
+    return acc + s;
+  }, 0);
+
+  const progressoPercent = duracaoTotal > 0
+    ? ((duracaoTotal - tempoRestante) / duracaoTotal) * 100
+    : 0;
 
   return (
     <section className="pomodoro-secao">
@@ -181,7 +230,7 @@ export default function Pomodoro() {
       <div className="pomodoro-layout">
         {/* Painel do Cronômetro */}
         <div className="card-pomodoro-timer">
-          {/* Seletor de Modo */}
+          {/* Seletor de Modo Principal */}
           <div className="pomodoro-modos">
             {Object.entries(MODOS).map(([chave, cfg]) => (
               <button
@@ -194,6 +243,26 @@ export default function Pomodoro() {
               </button>
             ))}
           </div>
+
+          {/* Seletor de Duração Rápida para o Modo de Foco */}
+          {modo === "foco" && (
+            <div className="pomodoro-presets-foco">
+              <span className="preset-label">Duração do Foco:</span>
+              <div className="preset-botoes">
+                {OPCOES_FOCO.map((op) => (
+                  <button
+                    key={op.segundos}
+                    type="button"
+                    className={`botao-preset ${duracaoTotal === op.segundos ? "preset-ativo" : ""}`}
+                    onClick={() => definirDuracaoFoco(op.segundos)}
+                    disabled={ativo}
+                  >
+                    {op.rotulo}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Vínculo com a Matéria */}
           {modo === "foco" && (
@@ -254,7 +323,11 @@ export default function Pomodoro() {
               className={`botao-timer ${ativo ? "botao-pausar" : "botao-iniciar"}`}
               onClick={alternarTimer}
             >
-              {ativo ? "Pausar" : "Iniciar Foco"}
+              {ativo
+                ? "Pausar"
+                : modo === "foco"
+                ? "Iniciar Foco"
+                : "Iniciar Pausa"}
             </button>
             <button
               type="button"
@@ -274,7 +347,9 @@ export default function Pomodoro() {
               <span className="metrica-legenda">Ciclos Concluídos</span>
             </div>
             <div className="card-metrica-pomo">
-              <span className="metrica-numero">{minutosTotaisHoje} min</span>
+              <span className="metrica-numero">
+                {formatarTempoDedicado(segundosTotaisHoje)}
+              </span>
               <span className="metrica-legenda">Tempo Dedicado</span>
             </div>
           </div>
@@ -293,7 +368,9 @@ export default function Pomodoro() {
                       <strong>{item.materia}</strong>
                       <small>{item.dataCompleta} às {item.data}</small>
                     </div>
-                    <span className="badge-tempo">+{item.minutos}m</span>
+                    <span className="badge-tempo">
+                      {formatarTempoBadge(item)}
+                    </span>
                   </li>
                 ))}
               </ul>
