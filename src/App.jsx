@@ -9,6 +9,7 @@ import AtividadeForm from "./pages/AtividadeForm";
 import Configuracoes from "./pages/Configuracoes";
 import Pomodoro from "./pages/Pomodoro";
 import EmBreve from "./pages/EmBreve";
+import Materias from "./pages/materias";
 import "./App.css";
 
 function App() {
@@ -43,7 +44,7 @@ function App() {
         />
 
         {/* Páginas secundárias / recursos futuros */}
-        <Route path="/materias" element={<EmBreve titulo="Matérias" />} />
+        <Route path="/materias" element={<Materias />} />
         <Route path="/calendario" element={<EmBreve titulo="Calendário" />} />
         <Route path="/prioridades" element={<EmBreve titulo="Prioridades" />} />
         <Route path="/estatisticas" element={<EmBreve titulo="Estatísticas" />} />
