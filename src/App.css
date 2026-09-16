@@ -2320,4 +2320,151 @@ a {
 
 .link-limpar-historico:hover {
   filter: brightness(0.9);
-}
+}
+
+/* =========================
+   PÁGINA DE MATÉRIAS
+   ========================= */
+
+.pagina-materias {
+    padding: 30px;
+}
+
+.pagina-materias h1 {
+    margin-bottom: 25px;
+}
+
+/* Botão Nova matéria */
+
+.botao-nova-materia {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 25px;
+}
+
+/* Lista de matérias */
+
+.lista-materias {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Cada matéria */
+
+.item-materia {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--borda);
+    min-height: 60px;
+}
+
+.item-materia:last-child {
+    border-bottom: none;
+}
+
+/* Nome da matéria */
+
+.nome-materia {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Botão Editar */
+
+.botao-editar {
+    
+    padding: 7px 14px;
+    border: 1px solid #9b5cff;
+    border-radius: 20px;
+    background: transparent;
+    color: #9b5cff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.botao-editar:hover {
+    background: #9b5cff;
+    color: white;
+}
+
+.botao-excluir {
+    
+    padding: 7px 14px;
+    border: 1px solid #ff5c5c;
+    border-radius: 20px;
+    background: transparent;
+    color: #ff5c5c;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.botao-excluir:hover {
+    background: #ff5c5c;
+    color: white;
+}
+
+.acoes-materia {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+/*Formulário de criação/edição de matéria*/
+
+.formulario-materia {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--borda);
+}
+
+.formulario-materia input[type="text"] {
+    padding: 10px 14px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+}
+
+.formulario-materia label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.formulario-materia input[type="color"] {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    appearance: none;
+    cursor: pointer;
+}
+
+.formulario-materia button {
+    padding: 9px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
