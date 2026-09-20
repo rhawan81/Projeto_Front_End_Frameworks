@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-import { carregarMaterias, salvarMaterias } from "../data/storage";
+import {
+    carregarMaterias,
+    salvarMaterias,
+    carregarAtividades
+} from "../data/storage";
 
 function Materias() {
 // Lista de matérias cadastradas.
@@ -13,8 +18,14 @@ function Materias() {
     const [corSelecionada, setCorSelecionada] = useState("#9b5cff");
     const [materiaEditando, setMateriaEditando] = useState(null);
 
+    // MYLENA - Atividades usadas no resumo das matérias.
+    const [atividades, setAtividades] = useState([]);
+
     useEffect(() => {
         setMaterias(carregarMaterias());
+
+        // MYLENA - Carrega as atividades salvas.
+        setAtividades(carregarAtividades());
     }, []);
 
 // Função responsável por cadastrar uma nova matéria.
@@ -130,6 +141,36 @@ function salvarEdicaoMateria() {
     salvarMaterias(materiasAtualizadas);
 }
 
+
+// MYLENA - Calcula o resumo de cada matéria.
+function obterResumoMateria(nomeMateria) {
+    const nomeNormalizado = nomeMateria.trim().toLowerCase();
+
+    // MYLENA - Filtra atividades da matéria.
+    const atividadesDaMateria = atividades.filter(
+        (atividade) =>
+            atividade.materia?.trim().toLowerCase() === nomeNormalizado
+    );
+
+    // MYLENA - Calcula os totais.
+    const total = atividadesDaMateria.length;
+
+    const pendentes = atividadesDaMateria.filter(
+        (atividade) => atividade.status === "pendente"
+    ).length;
+
+    const concluidas = atividadesDaMateria.filter(
+        (atividade) => atividade.status === "concluida"
+    ).length;
+
+    return {
+        total,
+        pendentes,
+        concluidas,
+    };
+}
+
+
     return (
         <main className="pagina-materias">
             <h1>Matérias</h1>
@@ -148,62 +189,62 @@ function salvarEdicaoMateria() {
             )}
 
             {mostrarFormulario && (
-    <div className="formulario-materia">
-        <input
-            type="text"
-            placeholder="Nome da matéria"
-            value={nomeMateria}
-            onChange={(e) => setNomeMateria(e.target.value)}
-        />
+                <div className="formulario-materia">
+                    <input
+                        type="text"
+                        placeholder="Nome da matéria"
+                        value={nomeMateria}
+                        onChange={(e) => setNomeMateria(e.target.value)}
+                    />
 
-        <label>
-            Escolha uma cor para a matéria:
-            <input
-                type="color"
-                value={corSelecionada}
-                onChange={(e) => setCorSelecionada(e.target.value)}
-            />
-        </label>
+                    <label>
+                        Escolha uma cor para a matéria:
+                        <input
+                            type="color"
+                            value={corSelecionada}
+                            onChange={(e) => setCorSelecionada(e.target.value)}
+                        />
+                    </label>
 
-        <button onClick={adicionarMateria}>
-            Salvar matéria
-        </button>
-    </div>
-)}
+                    <button onClick={adicionarMateria}>
+                        Salvar matéria
+                    </button>
+                </div>
+            )}
 
-{materiaEditando && (
-    <div className="formulario-materia">
-        <input
-            type="text"
-            placeholder="Nome da matéria"
-            value={materiaEditando.nome}
-            onChange={(e) =>
-                setMateriaEditando({
-                    ...materiaEditando,
-                    nome: e.target.value,
-                })
-            }
-        />
+            {materiaEditando && (
+                <div className="formulario-materia">
+                    <input
+                        type="text"
+                        placeholder="Nome da matéria"
+                        value={materiaEditando.nome}
+                        onChange={(e) =>
+                            setMateriaEditando({
+                                ...materiaEditando,
+                                nome: e.target.value,
+                            })
+                        }
+                    />
 
-        <label>
-            Escolha uma cor para a matéria:
-            <input
-                type="color"
-                value={materiaEditando.cor || "#9b5cff"}
-                onChange={(e) =>
-                    setMateriaEditando({
-                        ...materiaEditando,
-                        cor: e.target.value,
-                    })
-                }
-            />
-        </label>
+                    <label>
+                        Escolha uma cor para a matéria:
+                        <input
+                            type="color"
+                            value={materiaEditando.cor || "#9b5cff"}
+                            onChange={(e) =>
+                                setMateriaEditando({
+                                    ...materiaEditando,
+                                    cor: e.target.value,
+                                })
+                            }
+                        />
+                    </label>
 
-        <button onClick={salvarEdicaoMateria}>
-            Salvar alterações
-        </button>
-    </div>
-)}
+                    <button onClick={salvarEdicaoMateria}>
+                        Salvar alterações
+                    </button>
+                </div>
+            )}
 
             {materias.length === 0 ? (
                 <p className="lista-vazia">
@@ -211,40 +252,99 @@ function salvarEdicaoMateria() {
                 </p>
             ) : (
                 <ul className="lista-materias">
-                    {materias.map((materia) => (
-                        <li
-                            className="item-materia"
-                            key={materia.id}
-                        >
-                    <span
-                    className="nome-materia"
-                        style={{
-                            backgroundColor: materia.cor || "transparent",
-                            padding: "4px 10px",
-                            borderRadius: "8px",
-                            opacity: 0.60,
-                        }}
-                    >
-                        {materia.nome}
-                    </span>
 
-                            <div className="acoes-materia">
-                                <button
-                                    className="botao-editar"
-                                    onClick={() => editarMateria(materia.id)}
-                                >
-                                    Editar
-                                </button>
+                    {materias.map((materia) => {
 
-                                <button
-                                     className="botao-excluir"
-                                    onClick={() => excluirMateria(materia.id)}
+                        // MYLENA - Obtém o resumo da matéria.
+                        const resumo = obterResumoMateria(materia.nome);
+
+                        return (
+                            <li
+                                className="item-materia"
+                                key={materia.id}
+                            >
+
+                                {/* MYLENA - Abre as atividades filtradas pela matéria. */}
+                                <Link
+                                    to={`/atividades?materia=${encodeURIComponent(
+                                        materia.nome
+                                    )}`}
+                                    className="conteudo-materia"
                                 >
-                                    Excluir
-                                </button>
-                            </div>
-                        </li>
-                    ))}
+
+                                    <span
+                                        className="nome-materia"
+                                        style={{
+                                            backgroundColor: materia.cor || "transparent",
+                                            padding: "4px 10px",
+                                            borderRadius: "8px",
+                                            opacity: 0.60,
+                                        }}
+                                    >
+                                        {materia.nome}
+                                    </span>
+
+                                    {/* MYLENA - Resumo das atividades. */}
+                                    <div className="resumo-materia">
+
+                                        <div className="resumo-item">
+                                            <strong>
+                                                {resumo.total}
+                                            </strong>
+
+                                            <span>
+                                                Total
+                                            </span>
+                                        </div>
+
+                                        <div className="resumo-item">
+                                            <strong>
+                                                {resumo.pendentes}
+                                            </strong>
+
+                                            <span>
+                                                Pendentes
+                                            </span>
+                                        </div>
+
+                                        <div className="resumo-item">
+                                            <strong>
+                                                {resumo.concluidas}
+                                            </strong>
+
+                                            <span>
+                                                Concluídas
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+                                    <span className="ver-atividades-materia">
+                                        Ver atividades →
+                                    </span>
+
+                                </Link>
+
+                                <div className="acoes-materia">
+                                    <button
+                                        className="botao-editar"
+                                        onClick={() => editarMateria(materia.id)}
+                                    >
+                                        Editar
+                                    </button>
+
+                                    <button
+                                        className="botao-excluir"
+                                        onClick={() => excluirMateria(materia.id)}
+                                    >
+                                        Excluir
+                                    </button>
+                                </div>
+
+                            </li>
+                        );
+                    })}
+
                 </ul>
             )}
         </main>
