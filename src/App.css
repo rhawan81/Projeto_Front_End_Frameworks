@@ -2468,3 +2468,17 @@ a {
     cursor: pointer;
     font-weight: 600;
 }
+
+/* Mensagem de lista vazia */
+.lista-vazia {
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.mensagem-sucesso {
+    margin: 10px 0 20px;
+    font-weight: 600;
+}
