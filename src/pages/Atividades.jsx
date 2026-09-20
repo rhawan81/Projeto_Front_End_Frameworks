@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { carregarAtividades, salvarAtividades } from "../data/storage";
 import { useToast } from "../toast/ToastContext";
 import { IconeBusca, IconeMais, IconeLapis, IconeLixeira } from "../icons";
@@ -17,7 +17,11 @@ function Atividades() {
   const [atividades, setAtividades] = useState([]);
   const [aba, setAba] = useState("todas");
   const [busca, setBusca] = useState("");
-  const [filtroMateria, setFiltroMateria] = useState("todas");
+
+  // MYLENA - Lê a matéria enviada pela URL.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filtroMateria = searchParams.get("materia") || "todas";
+
   const [mostrarFiltro, setMostrarFiltro] = useState(false);
   const { mostrarToast } = useToast();
 
@@ -69,9 +73,11 @@ function Atividades() {
     <section className="atividades">
       <div className="atividades-topo">
         <h1>Atividades</h1>
+
         <div className="atividades-topo-acoes">
           <div className="campo-busca">
             <IconeBusca />
+
             <input
               type="text"
               placeholder="Buscar atividades..."
@@ -79,6 +85,7 @@ function Atividades() {
               onChange={(e) => setBusca(e.target.value)}
             />
           </div>
+
           <button
             type="button"
             className="botao-secundario"
@@ -86,6 +93,7 @@ function Atividades() {
           >
             Filtro
           </button>
+
           <Link to="/atividades/nova" className="botao-primario">
             <IconeMais /> Nova atividade
           </Link>
@@ -96,11 +104,26 @@ function Atividades() {
         <div className="painel-filtro">
           <label>
             Matéria
+
             <select
               value={filtroMateria}
-              onChange={(e) => setFiltroMateria(e.target.value)}
+              onChange={(e) => {
+                const materiaSelecionada = e.target.value;
+
+                // MYLENA - Atualiza o filtro da matéria na URL.
+                if (materiaSelecionada === "todas") {
+                  setSearchParams({});
+                } else {
+                  setSearchParams({
+                    materia: materiaSelecionada,
+                  });
+                }
+              }}
             >
-              <option value="todas">Todas</option>
+              <option value="todas">
+                Todas
+              </option>
+
               {materias.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -145,19 +168,36 @@ function Atividades() {
                 <th aria-label="Ações" />
               </tr>
             </thead>
+
             <tbody>
               {atividadesFiltradas.map((a) => (
                 <tr key={a.id}>
-                  <td className={a.status === "concluida" ? "titulo-concluido" : ""}>
+                  <td
+                    className={
+                      a.status === "concluida"
+                        ? "titulo-concluido"
+                        : ""
+                    }
+                  >
                     {a.titulo}
                   </td>
-                  <td>{a.materia}</td>
-                  <td>{formatarData(a.prazo)}</td>
+
                   <td>
-                    <span className={`selo selo-${a.prioridade}`}>
+                    {a.materia}
+                  </td>
+
+                  <td>
+                    {formatarData(a.prazo)}
+                  </td>
+
+                  <td>
+                    <span
+                      className={`selo selo-${a.prioridade}`}
+                    >
                       {rotulosPrioridade[a.prioridade]}
                     </span>
                   </td>
+
                   <td>
                     <button
                       type="button"
@@ -165,13 +205,21 @@ function Atividades() {
                       onClick={() => handleConcluir(a.id)}
                     >
                       <span className="bolinha" />
-                      {a.status === "concluida" ? "Concluído" : "Pendente"}
+
+                      {a.status === "concluida"
+                        ? "Concluído"
+                        : "Pendente"}
                     </button>
                   </td>
+
                   <td className="coluna-acoes">
-                    <Link to={`/atividades/${a.id}/editar`} aria-label="Editar">
+                    <Link
+                      to={`/atividades/${a.id}/editar`}
+                      aria-label="Editar"
+                    >
                       <IconeLapis />
                     </Link>
+
                     <button
                       type="button"
                       onClick={() => handleExcluir(a.id)}
