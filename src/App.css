@@ -2482,3 +2482,72 @@ a {
     margin: 10px 0 20px;
     font-weight: 600;
 }
+
+/* MYLENA - Área clicável da matéria */
+.conteudo-materia {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    text-decoration: none;
+    color: var(--texto);
+}
+
+/* MYLENA - Resumo com total, pendentes e concluídas */
+.resumo-materia {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-left: auto;
+}
+
+/* MYLENA - Cada indicador do resumo */
+.resumo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.resumo-item strong {
+    font-size: 18px;
+    color: var(--texto);
+}
+
+.resumo-item span {
+    font-size: 12px;
+    color: var(--texto-suave);
+    margin-top: 3px;
+}
+
+/* MYLENA - Link para acessar as atividades da matéria */
+.ver-atividades-materia {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primario);
+    white-space: nowrap;
+}
+
+/* MYLENA - Ajusta o card para receber o resumo */
+.item-materia {
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    margin-bottom: 14px;
+    background: var(--superficie);
+    transition: 0.2s;
+}
+
+.item-materia:hover {
+    box-shadow: var(--sombra);
+    transform: translateY(-1px);
+}
+
+/* MYLENA - Espaço entre o conteúdo e os botões */
+.acoes-materia {
+    margin-left: 25px;
+}
+
+/* MYLENA - Ajuste da lista para exibir os cards separados */
+.lista-materias {
+    overflow: visible;
+}
