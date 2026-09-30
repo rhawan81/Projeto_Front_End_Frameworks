@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { carregarAtividades, salvarAtividades } from "../data/storage";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  carregarAtividades,
+  salvarAtividades,
+  carregarMaterias,
+  garantirMateriaCadastrada,
+} from "../data/storage";
 import { useToast } from "../toast/ToastContext";
 import { IconeVoltar } from "../icons";
 
@@ -15,6 +20,7 @@ const FORM_VAZIO = {
 
 function AtividadeForm() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { mostrarToast } = useToast();
   const [form, setForm] = useState(FORM_VAZIO);
@@ -25,13 +31,21 @@ function AtividadeForm() {
 
   useEffect(() => {
     const atividades = carregarAtividades();
-    setMaterias([...new Set(atividades.map((a) => a.materia))].sort());
+    const materiasCadastradas = carregarMaterias().map((m) => m.nome);
+    const materiasDasAtividades = atividades.map((a) => a.materia);
+    const todas = [...new Set([...materiasCadastradas, ...materiasDasAtividades].filter(Boolean))].sort();
+    setMaterias(todas);
 
     if (modoEdicao) {
       const atividade = atividades.find((a) => a.id === id);
       if (atividade) setForm({ ...FORM_VAZIO, ...atividade });
+    } else {
+      const materiaParam = searchParams.get("materia");
+      if (materiaParam) {
+        setForm((f) => ({ ...f, materia: materiaParam }));
+      }
     }
-  }, [id, modoEdicao]);
+  }, [id, modoEdicao, searchParams]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -51,14 +65,18 @@ function AtividadeForm() {
     e.preventDefault();
     if (!validar()) return;
 
+    const nomeMateriaLimpo = form.materia.trim();
+    // Garante que a matéria digitada fique automaticamente disponível e refletida em Matérias
+    garantirMateriaCadastrada(nomeMateriaLimpo);
+
     const atividades = carregarAtividades();
 
     if (modoEdicao) {
-      const novaLista = atividades.map((a) => (a.id === id ? { ...form, id } : a));
+      const novaLista = atividades.map((a) => (a.id === id ? { ...form, materia: nomeMateriaLimpo, id } : a));
       salvarAtividades(novaLista);
       mostrarToast("Atividade atualizada com sucesso.");
     } else {
-      const novaAtividade = { ...form, id: Date.now().toString() };
+      const novaAtividade = { ...form, materia: nomeMateriaLimpo, id: Date.now().toString() };
       salvarAtividades([...atividades, novaAtividade]);
       mostrarToast("Atividade cadastrada com sucesso.");
     }

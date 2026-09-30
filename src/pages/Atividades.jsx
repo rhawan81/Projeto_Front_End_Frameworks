@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { carregarAtividades, salvarAtividades } from "../data/storage";
+import { carregarAtividades, salvarAtividades, carregarMaterias } from "../data/storage";
 import { useToast } from "../toast/ToastContext";
 import { IconeBusca, IconeMais, IconeLapis, IconeLixeira } from "../icons";
 
@@ -15,10 +15,11 @@ const rotulosPrioridade = { alta: "Alta", media: "Média", baixa: "Baixa" };
 
 function Atividades() {
   const [atividades, setAtividades] = useState([]);
+  const [materiasCadastradas, setMateriasCadastradas] = useState([]);
   const [aba, setAba] = useState("todas");
   const [busca, setBusca] = useState("");
 
-  // MYLENA - Lê a matéria enviada pela URL.
+  // Lê a matéria enviada pela URL
   const [searchParams, setSearchParams] = useSearchParams();
   const filtroMateria = searchParams.get("materia") || "todas";
 
@@ -27,6 +28,7 @@ function Atividades() {
 
   useEffect(() => {
     setAtividades(carregarAtividades());
+    setMateriasCadastradas(carregarMaterias());
   }, []);
 
   function atualizarESalvar(novaLista) {
@@ -36,16 +38,15 @@ function Atividades() {
 
   function handleConcluir(id) {
     const atividade = atividades.find((a) => a.id === id);
+    const novoStatus = atividade.status === "concluida" ? "pendente" : "concluida";
     const novaLista = atividades.map((a) =>
-      a.id === id
-        ? { ...a, status: a.status === "concluida" ? "pendente" : "concluida" }
-        : a
+      a.id === id ? { ...a, status: novoStatus } : a
     );
     atualizarESalvar(novaLista);
     mostrarToast(
-      atividade.status === "concluida"
-        ? "Atividade reaberta."
-        : "Atividade marcada como concluída."
+      novoStatus === "concluida"
+        ? "Atividade marcada como concluída."
+        : "Atividade reaberta como pendente."
     );
   }
 
@@ -55,17 +56,40 @@ function Atividades() {
     mostrarToast("Atividade excluída.", "aviso");
   }
 
-  const materias = useMemo(
-    () => [...new Set(atividades.map((a) => a.materia))].sort(),
-    [atividades]
-  );
+  // Lista unificada de matérias
+  const materias = useMemo(() => {
+    const setMat = new Set();
+    materiasCadastradas.forEach((m) => m.nome && setMat.add(m.nome));
+    atividades.forEach((a) => a.materia && setMat.add(a.materia));
+    return Array.from(setMat).sort();
+  }, [materiasCadastradas, atividades]);
+
+  // Mapa de cores para as matérias
+  const mapaCores = useMemo(() => {
+    const mapa = {};
+    materiasCadastradas.forEach((m) => {
+      if (m.nome && m.cor) mapa[m.nome.toLowerCase()] = m.cor;
+    });
+    return mapa;
+  }, [materiasCadastradas]);
+
+  // Contagem de atividades por matéria
+  const contagemPorMateria = useMemo(() => {
+    const cont = {};
+    atividades.forEach((a) => {
+      if (a.materia) {
+        cont[a.materia] = (cont[a.materia] || 0) + 1;
+      }
+    });
+    return cont;
+  }, [atividades]);
 
   const atividadesFiltradas = useMemo(() => {
     return atividades
       .filter((a) => (aba === "todas" ? true : a.status === aba))
       .filter((a) => a.titulo.toLowerCase().includes(busca.toLowerCase()))
       .filter((a) =>
-        filtroMateria === "todas" ? true : a.materia === filtroMateria
+        filtroMateria === "todas" ? true : a.materia?.toLowerCase() === filtroMateria.toLowerCase()
       );
   }, [atividades, aba, busca, filtroMateria]);
 
@@ -77,7 +101,6 @@ function Atividades() {
         <div className="atividades-topo-acoes">
           <div className="campo-busca">
             <IconeBusca />
-
             <input
               type="text"
               placeholder="Buscar atividades..."
@@ -91,10 +114,13 @@ function Atividades() {
             className="botao-secundario"
             onClick={() => setMostrarFiltro((v) => !v)}
           >
-            Filtro
+            Filtros
           </button>
 
-          <Link to="/atividades/nova" className="botao-primario">
+          <Link
+            to={filtroMateria !== "todas" ? `/atividades/nova?materia=${encodeURIComponent(filtroMateria)}` : "/atividades/nova"}
+            className="botao-primario"
+          >
             <IconeMais /> Nova atividade
           </Link>
         </div>
@@ -104,29 +130,21 @@ function Atividades() {
         <div className="painel-filtro">
           <label>
             Matéria
-
             <select
               value={filtroMateria}
               onChange={(e) => {
                 const materiaSelecionada = e.target.value;
-
-                // MYLENA - Atualiza o filtro da matéria na URL.
                 if (materiaSelecionada === "todas") {
                   setSearchParams({});
                 } else {
-                  setSearchParams({
-                    materia: materiaSelecionada,
-                  });
+                  setSearchParams({ materia: materiaSelecionada });
                 }
               }}
             >
-              <option value="todas">
-                Todas
-              </option>
-
+              <option value="todas">Todas as matérias</option>
               {materias.map((m) => (
                 <option key={m} value={m}>
-                  {m}
+                  {m} ({contagemPorMateria[m] || 0})
                 </option>
               ))}
             </select>
@@ -134,11 +152,45 @@ function Atividades() {
         </div>
       )}
 
+      {/* Abas de Matérias: Navegação rápida por disciplina */}
+      <div className="seletor-materias-abas">
+        <span className="seletor-materias-titulo">Matéria:</span>
+        <div className="seletor-materias-lista">
+          <button
+            type="button"
+            className={`aba-materia-chip ${filtroMateria === "todas" ? "chip-ativo" : ""}`}
+            onClick={() => setSearchParams({})}
+          >
+            Todas ({atividades.length})
+          </button>
+
+          {materias.map((m) => {
+            const cor = mapaCores[m.toLowerCase()] || "#8B5CF6";
+            const total = contagemPorMateria[m] || 0;
+            const ativa = filtroMateria.toLowerCase() === m.toLowerCase();
+
+            return (
+              <button
+                key={m}
+                type="button"
+                className={`aba-materia-chip ${ativa ? "chip-ativo" : ""}`}
+                onClick={() => setSearchParams({ materia: m })}
+              >
+                <span className="chip-ponto-cor" style={{ backgroundColor: cor }} />
+                <span>{m}</span>
+                <span className="chip-contador">{total}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Abas de Situação: Todas / Pendentes / Concluídas */}
       <div className="abas">
         {[
-          { chave: "todas", rotulo: "Todas" },
-          { chave: "pendente", rotulo: "Pendentes" },
-          { chave: "concluida", rotulo: "Concluídas" },
+          { chave: "todas", rotulo: `Todas (${atividades.filter(a => filtroMateria === "todas" ? true : a.materia?.toLowerCase() === filtroMateria.toLowerCase()).length})` },
+          { chave: "pendente", rotulo: `Pendentes (${atividades.filter(a => a.status === "pendente" && (filtroMateria === "todas" ? true : a.materia?.toLowerCase() === filtroMateria.toLowerCase())).length})` },
+          { chave: "concluida", rotulo: `Concluídas (${atividades.filter(a => a.status === "concluida" && (filtroMateria === "todas" ? true : a.materia?.toLowerCase() === filtroMateria.toLowerCase())).length})` },
         ].map(({ chave, rotulo }) => (
           <button
             key={chave}
@@ -152,9 +204,16 @@ function Atividades() {
       </div>
 
       {atividadesFiltradas.length === 0 ? (
-        <p className="mensagem-vazia">
-          Nenhuma atividade encontrada com esses filtros.
-        </p>
+        <div className="mensagem-vazia">
+          <p>Nenhuma atividade encontrada com esses filtros.</p>
+          <Link
+            to={filtroMateria !== "todas" ? `/atividades/nova?materia=${encodeURIComponent(filtroMateria)}` : "/atividades/nova"}
+            className="botao-primario"
+            style={{ marginTop: "12px", display: "inline-flex" }}
+          >
+            <IconeMais /> Cadastrar atividade {filtroMateria !== "todas" ? `em ${filtroMateria}` : ""}
+          </Link>
+        </div>
       ) : (
         <div className="tabela-wrap">
           <table className="tabela-atividades">
@@ -183,7 +242,18 @@ function Atividades() {
                   </td>
 
                   <td>
-                    {a.materia}
+                    <span
+                      className="selo-materia-tabela"
+                      style={{
+                        borderColor: mapaCores[a.materia?.toLowerCase()] || "var(--borda)",
+                      }}
+                    >
+                      <span
+                        className="bolinha-materia-tabela"
+                        style={{ backgroundColor: mapaCores[a.materia?.toLowerCase()] || "var(--primario)" }}
+                      />
+                      {a.materia}
+                    </span>
                   </td>
 
                   <td>
@@ -205,7 +275,6 @@ function Atividades() {
                       onClick={() => handleConcluir(a.id)}
                     >
                       <span className="bolinha" />
-
                       {a.status === "concluida"
                         ? "Concluído"
                         : "Pendente"}

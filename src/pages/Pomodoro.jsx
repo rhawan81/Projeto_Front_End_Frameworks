@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { carregarAtividades } from "../data/storage";
+import { carregarAtividades, carregarMaterias } from "../data/storage";
 import { useToast } from "../toast/ToastContext";
 import { IconeRelogio, IconeSino } from "../icons";
 
@@ -69,10 +69,12 @@ export default function Pomodoro() {
 
   const intervaloRef = useRef(null);
 
-  // Carrega matérias já existentes das atividades cadastradas
+  // Carrega matérias cadastradas e das atividades
   useEffect(() => {
     const atividades = carregarAtividades();
-    const lista = [...new Set(atividades.map((a) => a.materia).filter(Boolean))].sort();
+    const materiasCadastradas = carregarMaterias().map((m) => m.nome);
+    const materiasDasAtividades = atividades.map((a) => a.materia);
+    const lista = [...new Set([...materiasCadastradas, ...materiasDasAtividades].filter(Boolean))].sort();
     setMateriasDisponiveis(lista);
     if (lista.length > 0) {
       setMateriaSelecionada(lista[0]);
