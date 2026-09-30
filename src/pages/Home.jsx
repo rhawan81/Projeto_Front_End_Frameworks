@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { carregarAtividades } from "../data/storage";
+import { carregarAtividades, carregarMaterias } from "../data/storage";
 import { useAuth } from "../auth/AuthContext";
 import { IconeMais } from "../icons";
 
@@ -16,14 +16,22 @@ const CORES_PRIORIDADE = { alta: "#EF4444", media: "#F59E0B", baixa: "#10B981" }
 function Home() {
   const { usuario } = useAuth();
   const [atividades, setAtividades] = useState([]);
+  const [materiasCadastradas, setMateriasCadastradas] = useState([]);
 
   useEffect(() => {
     setAtividades(carregarAtividades());
+    setMateriasCadastradas(carregarMaterias());
   }, []);
 
   const pendentes = atividades.filter((a) => a.status === "pendente");
   const concluidas = atividades.filter((a) => a.status === "concluida");
-  const materias = new Set(atividades.map((a) => a.materia));
+
+  const totalMaterias = useMemo(() => {
+    const setMat = new Set();
+    materiasCadastradas.forEach((m) => m.nome && setMat.add(m.nome.toLowerCase()));
+    atividades.forEach((a) => a.materia && setMat.add(a.materia.toLowerCase()));
+    return setMat.size;
+  }, [materiasCadastradas, atividades]);
 
   const proximas = [...pendentes]
     .sort((a, b) => new Date(a.prazo) - new Date(b.prazo))
@@ -67,7 +75,7 @@ function Home() {
           <span className="rotulo">Concluídas</span>
         </div>
         <div className="cartao-resumo">
-          <span className="numero">{materias.size}</span>
+          <span className="numero">{totalMaterias}</span>
           <span className="rotulo">Matérias</span>
         </div>
         <div className="cartao-resumo">

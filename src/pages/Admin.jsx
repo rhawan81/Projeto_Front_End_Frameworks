@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../toast/ToastContext";
-import { carregarAtividades, salvarAtividades } from "../data/storage";
+import { carregarAtividades, salvarAtividades, carregarMaterias, garantirMateriaCadastrada } from "../data/storage";
 import { testarConexaoApi, buscarAtividadesDaApi, API_URL } from "../services/api";
 import {
   IconeEscudo,
@@ -214,6 +214,7 @@ export default function Admin() {
     const atualizadas = [...atividades, novaAtividadeModelo];
     setAtividades(atualizadas);
     salvarAtividades(atualizadas);
+    garantirMateriaCadastrada(nomeLimpo);
     setNovaMateria("");
     mostrarToast(`Matéria "${nomeLimpo}" cadastrada com sucesso!`, "sucesso");
     registrarLog(`Nova matéria "${nomeLimpo}" adicionada às disciplinas.`, "sucesso");

@@ -2322,232 +2322,582 @@ a {
   filter: brightness(0.9);
 }
 
-/* =========================
-   PÁGINA DE MATÉRIAS
-   ========================= */
+/* ===================================================
+   PÁGINA DE MATÉRIAS & ORGANIZADOR DE ESTUDOS
+   =================================================== */
 
 .pagina-materias {
-    padding: 30px;
+  padding: 1.8rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.pagina-materias h1 {
-    margin-bottom: 25px;
+.materias-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Botão Nova matéria */
-
-.botao-nova-materia {
-    padding: 12px 22px;
-    border: none;
-    border-radius: 25px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 25px;
+.materias-topo h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--texto);
 }
 
-/* Lista de matérias */
-
-.lista-materias {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border-radius: 14px;
-    overflow: hidden;
-    width: 100%;
+.materias-metricas-grid {
+  margin-bottom: 1.5rem;
 }
 
-/* Cada matéria */
-
-.item-materia {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--borda);
-    min-height: 60px;
+.cartao-destaque-alerta {
+  border: 1px solid var(--alta) !important;
+  background: var(--alta-suave) !important;
 }
 
-.item-materia:last-child {
-    border-bottom: none;
+.materias-barra-controles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Nome da matéria */
-
-.nome-materia {
-    font-size: 16px;
-    font-weight: 500;
+.materias-abas-filtro {
+  margin-bottom: 0;
+  border-bottom: none;
 }
 
-/* Botão Editar */
-
-.botao-editar {
-    
-    padding: 7px 14px;
-    border: 1px solid #9b5cff;
-    border-radius: 20px;
-    background: transparent;
-    color: #9b5cff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
+/* Formulário Card de Matéria */
+.formulario-materia-card {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sombra);
 }
 
-.botao-editar:hover {
-    background: #9b5cff;
-    color: white;
+.formulario-materia-card.editando {
+  border-left: 4px solid var(--primario);
 }
 
-.botao-excluir {
-    
-    padding: 7px 14px;
-    border: 1px solid #ff5c5c;
-    border-radius: 20px;
-    background: transparent;
-    color: #ff5c5c;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
+.formulario-materia-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.3rem;
+  font-size: 1.15rem;
 }
 
-.botao-excluir:hover {
-    background: #ff5c5c;
-    color: white;
+.formulario-materia-linha {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
-.acoes-materia {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-left: auto;
+.formulario-materia-linha input[type="text"] {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 0.95rem;
 }
 
-/*Formulário de criação/edição de matéria*/
-
-.formulario-materia {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    padding: 18px;
-    border-radius: 12px;
-    border: 1px solid var(--borda);
+.seletor-cor-materia {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
 }
 
-.formulario-materia input[type="text"] {
-    padding: 10px 14px;
-    border: 1px solid var(--borda);
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
+.paleta-cores {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.formulario-materia label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
+.botao-cor {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
-.formulario-materia input[type="color"] {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: none;
-    background: transparent;
-    appearance: none;
-    cursor: pointer;
+.botao-cor:hover {
+  transform: scale(1.15);
 }
 
-.formulario-materia button {
-    padding: 9px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
+.botao-cor.cor-ativa {
+  border-color: var(--texto);
+  transform: scale(1.18);
+  box-shadow: 0 0 0 2px var(--superficie);
 }
 
-/* Mensagem de lista vazia */
-.lista-vazia {
-    padding: 20px;
-    text-align: center;
-    border: 1px solid var(--borda);
-    border-radius: 12px;
-    margin-top: 10px;
+.formulario-materia-botoes {
+  display: flex;
+  gap: 0.6rem;
+  margin-left: auto;
 }
 
-.mensagem-sucesso {
-    margin: 10px 0 20px;
-    font-weight: 600;
+/* Grid de Cards de Matérias */
+.materias-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
 
-/* MYLENA - Área clicável da matéria */
-.conteudo-materia {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    text-decoration: none;
-    color: var(--texto);
+.card-materia {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 1.4rem;
+  box-shadow: var(--sombra);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* MYLENA - Resumo com total, pendentes e concluídas */
-.resumo-materia {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    margin-left: auto;
+.card-materia:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
 }
 
-/* MYLENA - Cada indicador do resumo */
-.resumo-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 70px;
+.card-materia-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
 }
 
-.resumo-item strong {
-    font-size: 18px;
-    color: var(--texto);
+.card-materia-identificacao {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
-.resumo-item span {
-    font-size: 12px;
-    color: var(--texto-suave);
-    margin-top: 3px;
+.etiqueta-materia {
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-/* MYLENA - Link para acessar as atividades da matéria */
-.ver-atividades-materia {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--primario);
-    white-space: nowrap;
+.badge-alerta-prioridade {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--alta-suave);
+  color: var(--alta);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-/* MYLENA - Ajusta o card para receber o resumo */
-.item-materia {
-    border: 1px solid var(--borda);
-    border-radius: 14px;
-    margin-bottom: 14px;
-    background: var(--superficie);
-    transition: 0.2s;
+.card-materia-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.item-materia:hover {
-    box-shadow: var(--sombra);
-    transform: translateY(-1px);
+.botao-acao-materia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* MYLENA - Espaço entre o conteúdo e os botões */
-.acoes-materia {
-    margin-left: 25px;
+.botao-acao-materia:hover {
+  background: var(--fundo);
+  color: var(--primario);
+  border-color: var(--primario);
 }
 
-/* MYLENA - Ajuste da lista para exibir os cards separados */
-.lista-materias {
-    overflow: visible;
+.botao-acao-materia.excluir:hover {
+  color: var(--alta);
+  border-color: var(--alta);
+  background: var(--alta-suave);
+}
+
+/* Progresso da Disciplina */
+.card-materia-progresso-secao {
+  margin-bottom: 1rem;
+}
+
+.progresso-topo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  margin-bottom: 0.35rem;
+}
+
+.progresso-trilha {
+  width: 100%;
+  height: 6px;
+  background: var(--fundo);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progresso-preenchimento {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* Resumo de Atividades & Prioridades */
+.card-materia-resumo-estudos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0.8rem 1rem;
+  background: var(--fundo);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.resumo-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.resumo-valor {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.resumo-valor.pendente {
+  color: var(--media);
+}
+
+.resumo-valor.concluida {
+  color: var(--baixa);
+}
+
+.resumo-legenda {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+  margin-top: 2px;
+}
+
+.resumo-prioridades-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.tag-prioridade {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* Botões de Expansão e Navegação */
+.card-materia-botoes-expansao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.botao-alternar-atividades {
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primario);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.botao-alternar-atividades:hover {
+  background: var(--fundo);
+}
+
+.link-painel-atividades {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primario);
+  transition: opacity 0.15s ease;
+}
+
+.link-painel-atividades:hover {
+  text-decoration: underline;
+}
+
+/* Painel de Atividades Expandido */
+.card-materia-atividades-painel {
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--borda);
+}
+
+.materia-abas-internas {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.aba-interna {
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.aba-interna:hover {
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+.aba-interna.ativa {
+  background: var(--primario);
+  color: #FFFFFF;
+  border-color: var(--primario);
+  font-weight: 600;
+}
+
+.materia-atividades-vazia {
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--fundo);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+
+.lista-atividades-materia {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.item-atividade-materia {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.75rem 1rem;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.item-atividade-materia.concluida {
+  opacity: 0.75;
+}
+
+.atividade-materia-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atividade-materia-info strong {
+  font-size: 0.9rem;
+  color: var(--texto);
+}
+
+.atividade-materia-prazo {
+  font-size: 0.76rem;
+  color: var(--texto-suave);
+}
+
+.botao-editar-atividade-materia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--texto-suave);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.botao-editar-atividade-materia:hover {
+  background: var(--superficie);
+  color: var(--primario);
+}
+
+.materia-atividades-rodape {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.botao-nova-atividade-materia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--primario);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: var(--fundo);
+  border: 1px dashed var(--primario);
+  transition: background 0.15s ease;
+}
+
+.botao-nova-atividade-materia:hover {
+  background: var(--superficie);
+}
+
+/* ===================================================
+   ABAS DE MATÉRIA NA PÁGINA DE ATIVIDADES
+   =================================================== */
+
+.seletor-materias-abas {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.seletor-materias-titulo {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.seletor-materias-lista {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  max-width: 100%;
+}
+
+.aba-materia-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--texto);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.aba-materia-chip:hover {
+  border-color: var(--primario);
+  background: var(--fundo);
+}
+
+.aba-materia-chip.chip-ativo {
+  background: var(--primario);
+  color: #FFFFFF;
+  border-color: var(--primario);
+  box-shadow: 0 2px 8px rgba(76, 99, 255, 0.35);
+}
+
+.chip-ponto-cor {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.aba-materia-chip.chip-ativo .chip-ponto-cor {
+  background-color: #FFFFFF !important;
+}
+
+.chip-contador {
+  font-size: 0.72rem;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.aba-materia-chip.chip-ativo .chip-contador {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+/* Selo de Matéria na Tabela de Atividades */
+.selo-materia-tabela {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--borda);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--fundo);
+}
+
+.bolinha-materia-tabela {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.botao-secundario-pequeno {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--borda);
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botao-secundario-pequeno:hover {
+  border-color: var(--primario);
+  color: var(--primario);
 }
