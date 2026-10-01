@@ -4,6 +4,10 @@ import { carregarAtividades, salvarAtividades, carregarMaterias } from "../data/
 import { useToast } from "../toast/ToastContext";
 import { IconeBusca, IconeMais, IconeLapis, IconeLixeira } from "../icons";
 
+/**
+ * Converte datas do formato ISO/Banco (AAAA-MM-DD) para o formato brasileiro (DD/MM/AAAA).
+ * Retorna um valor padrão se a data não estiver preenchida.
+ */
 function formatarData(dataStr) {
   if (!dataStr) return "--/--/----";
   const partes = dataStr.split("-");
@@ -11,38 +15,52 @@ function formatarData(dataStr) {
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
+// Mapeamento dos códigos internos de prioridade para exibição amigável na tela
 const rotulosPrioridade = { alta: "Alta", media: "Média", baixa: "Baixa" };
 
 function Atividades() {
+  // --- ESTADOS NATIVOS DA APLICAÇÃO ---
   const [atividades, setAtividades] = useState([]);
   const [materiasCadastradas, setMateriasCadastradas] = useState([]);
-  const [aba, setAba] = useState("todas");
-  const [busca, setBusca] = useState("");
+  const [aba, setAba] = useState("todas"); // Controla o filtro por situação ('todas', 'pendente', 'concluida')
+  const [busca, setBusca] = useState(""); // Filtro de busca textual no título da atividade
+  const [mostrarFiltro, setMostrarFiltro] = useState(false); // Alterna a exibição do painel retrátil de filtros
 
-  // Lê a matéria enviada pela URL
+  // --- HOOKS DE BIBLIOTECAS E CONTEXTO ---
+  // Gerencia a leitura e escrita de parâmetros na URL (query string: ?materia=Nome)
   const [searchParams, setSearchParams] = useSearchParams();
   const filtroMateria = searchParams.get("materia") || "todas";
 
-  const [mostrarFiltro, setMostrarFiltro] = useState(false);
+  // Dispara notificações visuais (mensagens de confirmação/aviso)
   const { mostrarToast } = useToast();
 
+  // Carrega os dados persistidos no armazenamento local assim que o componente é montado
   useEffect(() => {
     setAtividades(carregarAtividades());
     setMateriasCadastradas(carregarMaterias());
   }, []);
 
+  /**
+   * Helper que mantém o estado local em sincronia com o localStorage.
+   */
   function atualizarESalvar(novaLista) {
     setAtividades(novaLista);
     salvarAtividades(novaLista);
   }
 
+  /**
+   * Alterna a situação da atividade entre 'concluida' e 'pendente'.
+   */
   function handleConcluir(id) {
     const atividade = atividades.find((a) => a.id === id);
     const novoStatus = atividade.status === "concluida" ? "pendente" : "concluida";
+    
     const novaLista = atividades.map((a) =>
       a.id === id ? { ...a, status: novoStatus } : a
     );
+    
     atualizarESalvar(novaLista);
+    
     mostrarToast(
       novoStatus === "concluida"
         ? "Atividade marcada como concluída."
@@ -50,13 +68,18 @@ function Atividades() {
     );
   }
 
+  /**
+   * Remove uma atividade da lista pelo ID.
+   */
   function handleExcluir(id) {
     const novaLista = atividades.filter((a) => a.id !== id);
     atualizarESalvar(novaLista);
     mostrarToast("Atividade excluída.", "aviso");
   }
 
-  // Lista unificada de matérias
+  // --- CÁLCULOS MEMORIZADOS (useMemo para otimização de performance) ---
+
+  // Gera uma lista única e alfabética de matérias unindo as cadastradas com as usadas nas atividades
   const materias = useMemo(() => {
     const setMat = new Set();
     materiasCadastradas.forEach((m) => m.nome && setMat.add(m.nome));
@@ -64,7 +87,7 @@ function Atividades() {
     return Array.from(setMat).sort();
   }, [materiasCadastradas, atividades]);
 
-  // Mapa de cores para as matérias
+  // Cria um mapa de consulta rápida [nome_da_materia]: "cor_hex"
   const mapaCores = useMemo(() => {
     const mapa = {};
     materiasCadastradas.forEach((m) => {
@@ -73,7 +96,7 @@ function Atividades() {
     return mapa;
   }, [materiasCadastradas]);
 
-  // Contagem de atividades por matéria
+  // Mapeia a contagem total de atividades registradas para cada matéria
   const contagemPorMateria = useMemo(() => {
     const cont = {};
     atividades.forEach((a) => {
@@ -84,6 +107,7 @@ function Atividades() {
     return cont;
   }, [atividades]);
 
+  // Aplica o encadeamento de filtros (Aba de Situação, Busca por Texto e Filtro por Matéria)
   const atividadesFiltradas = useMemo(() => {
     return atividades
       .filter((a) => (aba === "todas" ? true : a.status === aba))
@@ -95,10 +119,12 @@ function Atividades() {
 
   return (
     <section className="atividades">
+      {/* Cabeçalho da página com busca, botão de filtros adicionais e ação de criação */}
       <div className="atividades-topo">
         <h1>Atividades</h1>
 
         <div className="atividades-topo-acoes">
+          {/* Campo de pesquisa por texto */}
           <div className="campo-busca">
             <IconeBusca />
             <input
@@ -109,6 +135,7 @@ function Atividades() {
             />
           </div>
 
+          {/* Botão para abrir/fechar o painel de filtros adicionais */}
           <button
             type="button"
             className="botao-secundario"
@@ -117,6 +144,7 @@ function Atividades() {
             Filtros
           </button>
 
+          {/* Botão de nova atividade, que preserva o contexto da matéria ativa na URL se houver */}
           <Link
             to={filtroMateria !== "todas" ? `/atividades/nova?materia=${encodeURIComponent(filtroMateria)}` : "/atividades/nova"}
             className="botao-primario"
@@ -126,6 +154,7 @@ function Atividades() {
         </div>
       </div>
 
+      {/* Painel retrátil contendo o menu suspenso (select) de matérias */}
       {mostrarFiltro && (
         <div className="painel-filtro">
           <label>
@@ -152,10 +181,11 @@ function Atividades() {
         </div>
       )}
 
-      {/* Abas de Matérias: Navegação rápida por disciplina */}
+      {/* Abas superiores no formato de "Chips" para navegação rápida entre matérias */}
       <div className="seletor-materias-abas">
         <span className="seletor-materias-titulo">Matéria:</span>
         <div className="seletor-materias-lista">
+          {/* Chip para limpar o filtro de matérias */}
           <button
             type="button"
             className={`aba-materia-chip ${filtroMateria === "todas" ? "chip-ativo" : ""}`}
@@ -164,6 +194,7 @@ function Atividades() {
             Todas ({atividades.length})
           </button>
 
+          {/* Renderização dinâmica de cada chip com a cor da matéria e contador */}
           {materias.map((m) => {
             const cor = mapaCores[m.toLowerCase()] || "#8B5CF6";
             const total = contagemPorMateria[m] || 0;
@@ -185,7 +216,7 @@ function Atividades() {
         </div>
       </div>
 
-      {/* Abas de Situação: Todas / Pendentes / Concluídas */}
+      {/* Abas secundárias para filtrar pelo status/situação da atividade */}
       <div className="abas">
         {[
           { chave: "todas", rotulo: `Todas (${atividades.filter(a => filtroMateria === "todas" ? true : a.materia?.toLowerCase() === filtroMateria.toLowerCase()).length})` },
@@ -203,6 +234,7 @@ function Atividades() {
         ))}
       </div>
 
+      {/* Renderização condicional: exibe o estado vazio se nenhuma atividade for encontrada */}
       {atividadesFiltradas.length === 0 ? (
         <div className="mensagem-vazia">
           <p>Nenhuma atividade encontrada com esses filtros.</p>
@@ -215,6 +247,7 @@ function Atividades() {
           </Link>
         </div>
       ) : (
+        /* Tabela com a listagem principal das atividades */
         <div className="tabela-wrap">
           <table className="tabela-atividades">
             <thead>
@@ -231,6 +264,7 @@ function Atividades() {
             <tbody>
               {atividadesFiltradas.map((a) => (
                 <tr key={a.id}>
+                  {/* Título com estilização condicional para tarefas concluídas */}
                   <td
                     className={
                       a.status === "concluida"
@@ -241,6 +275,7 @@ function Atividades() {
                     {a.titulo}
                   </td>
 
+                  {/* Tag com a cor dinâmica referente à matéria */}
                   <td>
                     <span
                       className="selo-materia-tabela"
@@ -256,10 +291,12 @@ function Atividades() {
                     </span>
                   </td>
 
+                  {/* Data formatada para DD/MM/AAAA */}
                   <td>
                     {formatarData(a.prazo)}
                   </td>
 
+                  {/* Badge visual referente à prioridade */}
                   <td>
                     <span
                       className={`selo selo-${a.prioridade}`}
@@ -268,6 +305,7 @@ function Atividades() {
                     </span>
                   </td>
 
+                  {/* Botão de alternância (Toggle) do status da atividade */}
                   <td>
                     <button
                       type="button"
@@ -281,6 +319,7 @@ function Atividades() {
                     </button>
                   </td>
 
+                  {/* Coluna de ações rápidas: Editar e Excluir */}
                   <td className="coluna-acoes">
                     <Link
                       to={`/atividades/${a.id}/editar`}
