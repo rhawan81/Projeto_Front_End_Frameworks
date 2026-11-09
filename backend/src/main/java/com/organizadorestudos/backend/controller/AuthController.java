@@ -1,7 +1,9 @@
 
 package com.organizadorestudos.backend.controller;
 
+import com.organizadorestudos.backend.dto.AuthResponse;
 import com.organizadorestudos.backend.dto.CadastroRequest;
+import com.organizadorestudos.backend.dto.LoginRequest;
 import com.organizadorestudos.backend.model.Usuario;
 import com.organizadorestudos.backend.service.UsuarioService;
 
@@ -23,6 +25,7 @@ public class AuthController {
         this.usuarioService = usuarioService;
     }
 
+    // Endpoint para cadastro de usuarios
     @PostMapping("/register")
     public ResponseEntity<?> cadastrar(
             @Valid @RequestBody CadastroRequest dados) {
@@ -31,10 +34,10 @@ public class AuthController {
             Usuario usuario = usuarioService.cadastrar(dados);
 
             Map<String, Object> resposta = Map.of(
-                "id", usuario.getId(),
-                "nome", usuario.getNome(),
-                "email", usuario.getEmail(),
-                "mensagem", "Usuário cadastrado com sucesso!"
+                    "id", usuario.getId(),
+                    "nome", usuario.getNome(),
+                    "email", usuario.getEmail(),
+                    "mensagem", "Usuário cadastrado com sucesso!"
             );
 
             return ResponseEntity
@@ -42,9 +45,25 @@ public class AuthController {
                     .body(resposta);
 
         } catch (IllegalArgumentException e) {
-
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
+                    .body(Map.of("mensagem", e.getMessage()));
+        }
+    }
+
+    // Endpoint para login de usuarios
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest dados) {
+
+        try {
+            AuthResponse resposta = usuarioService.autenticar(dados);
+
+            return ResponseEntity.ok(resposta);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("mensagem", e.getMessage()));
         }
     }
