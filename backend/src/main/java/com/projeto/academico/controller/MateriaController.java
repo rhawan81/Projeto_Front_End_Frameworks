@@ -1,18 +1,11 @@
 package com.projeto.academico.controller;
 
-import com.projeto.academico.dto.MateriaRequest;
-import com.projeto.academico.dto.MateriaResponse;
+import com.projeto.academico.dto.MateriaRequestDTO;
+import com.projeto.academico.model.Materia;
 import com.projeto.academico.service.MateriaService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -29,26 +22,26 @@ public class MateriaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MateriaResponse>> listar() {
+    public ResponseEntity<List<Materia>> listar() {
         return ResponseEntity.ok(service.listar());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MateriaResponse> buscar(@PathVariable Long id) {
+    public ResponseEntity<Materia> buscar(@PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<MateriaResponse> criar(@Valid @RequestBody MateriaRequest dados) {
-        MateriaResponse criada = service.criar(dados);
+    public ResponseEntity<Materia> criar(@Valid @RequestBody MateriaRequestDTO dados) {
+        Materia criada = service.criar(dados);
         URI localizacao = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}").buildAndExpand(criada.id()).toUri();
+                .path("/{id}").buildAndExpand(criada.getId()).toUri();
         return ResponseEntity.created(localizacao).body(criada);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MateriaResponse> atualizar(@PathVariable Long id,
-                                                    @Valid @RequestBody MateriaRequest dados) {
+    public ResponseEntity<Materia> atualizar(@PathVariable Long id,
+                                             @Valid @RequestBody MateriaRequestDTO dados) {
         return ResponseEntity.ok(service.atualizar(id, dados));
     }
 

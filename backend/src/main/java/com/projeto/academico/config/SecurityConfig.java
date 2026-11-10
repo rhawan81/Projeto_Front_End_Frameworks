@@ -1,7 +1,7 @@
 package com.projeto.academico.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.projeto.academico.dto.ApiErro;
+import com.projeto.academico.exception.ApiErrorDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,17 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.io.IOException;
-import java.util.Map;
 
-/**
- * Habilita o CRUD público de /materias para a fase de integração.
- * ATENÇÃO: quando a equipe implementar JWT, unificar este bean com a
- * configuração de autenticação, protegendo os recursos por usuário.
- */
 @Configuration
 public class SecurityConfig {
 
@@ -29,12 +24,14 @@ public class SecurityConfig {
             throws Exception {
         return http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable) // API REST sem sessão/cookie.
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/materias", "/materias/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
@@ -54,6 +51,12 @@ public class SecurityConfig {
         response.setStatus(status.value());
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
-        mapper.writeValue(response.getWriter(), ApiErro.de(status, mensagem, caminho, Map.of()));
+        ApiErrorDTO erro = new ApiErrorDTO(
+                status.value(),
+                status.getReasonPhrase(),
+                mensagem,
+                caminho
+        );
+        mapper.writeValue(response.getWriter(), erro);
     }
 }
