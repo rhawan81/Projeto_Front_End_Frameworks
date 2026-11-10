@@ -1,0 +1,4 @@
+/target/
+/data/
+*.trace.db
+*.lock.db
