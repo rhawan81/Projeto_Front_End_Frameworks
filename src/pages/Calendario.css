@@ -1,0 +1,280 @@
+
+.calendario-page {
+  padding: 30px;
+  color: var(--texto, #fff);
+}
+
+.calendario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.calendario-subtitle {
+  color: #999;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.calendario-header h1 {
+  margin: 8px 0;
+  font-size: 30px;
+}
+
+.calendario-header p,
+.calendario-detalhes-header p {
+  color: #999;
+  margin: 0;
+  font-size: 14px;
+}
+
+.calendario-botao {
+  background: #4d5fff;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 9px;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.calendario-painel,
+.calendario-detalhes {
+  background: var(--card, #171b30);
+  border: 1px solid var(--borda, #303650);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.calendario-controles,
+.calendario-navegacao,
+.calendario-detalhes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.calendario-navegacao {
+  justify-content: flex-start;
+}
+
+.calendario-navegacao h2 {
+  font-size: 19px;
+  min-width: 190px;
+  text-align: center;
+}
+
+.calendario-navegacao button,
+.calendario-hoje {
+  border: 1px solid var(--borda, #303650);
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.calendario-hoje {
+  font-size: 13px;
+}
+
+.calendario-grade {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin-top: 20px;
+}
+
+.calendario-dia-semana {
+  text-align: center;
+  color: #999;
+  padding: 12px 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.calendario-dia {
+  position: relative;
+  min-height: 90px;
+  border: 1px solid var(--borda, #303650);
+  background: transparent;
+  color: inherit;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendario-dia:hover {
+  background: rgba(100, 110, 255, 0.1);
+}
+
+.calendario-dia.outro-mes {
+  opacity: 0.35;
+}
+
+.calendario-dia.dia-hoje .calendario-numero {
+  background: #4d5fff;
+  color: white;
+  border-radius: 50%;
+  padding: 4px 7px;
+}
+
+.calendario-dia.dia-selecionado {
+  outline: 2px solid #4d5fff;
+  outline-offset: -2px;
+  background: rgba(77, 95, 255, 0.1);
+}
+
+.calendario-numero {
+  font-size: 13px;
+}
+
+.calendario-marcadores {
+  display: flex;
+  gap: 4px;
+  margin-top: 13px;
+}
+
+.marcador,
+.calendario-legenda i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.marcador.pendente,
+.legenda-pendente {
+  background: #ffbd59;
+}
+
+.marcador.concluido,
+.legenda-concluida {
+  background: #36c995;
+}
+
+.calendario-contagem {
+  position: absolute;
+  right: 9px;
+  bottom: 8px;
+  color: #aaa;
+  font-size: 11px;
+}
+
+.calendario-legenda {
+  display: flex;
+  gap: 20px;
+  margin-top: 18px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.calendario-legenda span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.calendario-detalhes-header {
+  margin-bottom: 18px;
+}
+
+.calendario-detalhes-header h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.calendario-detalhes-header > span {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.calendario-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.calendario-atividade {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 0;
+  border-top: 1px solid var(--borda, #303650);
+}
+
+.calendario-atividade > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calendario-atividade strong {
+  font-size: 14px;
+}
+
+.calendario-atividade span {
+  color: #999;
+  font-size: 12px;
+}
+
+.calendario-atividade-acoes {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.calendario-atividade-acoes a {
+  color: #8994ff;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.calendario-atividade-acoes .status-concluida {
+  color: #36c995;
+}
+
+.calendario-atividade-acoes .status-pendente {
+  color: #ffbd59;
+}
+
+.calendario-vazio {
+  color: #999;
+  font-size: 14px;
+  padding: 15px 0;
+}
+
+@media (max-width: 700px) {
+  .calendario-page {
+    padding: 18px;
+  }
+
+  .calendario-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendario-painel {
+    padding: 12px;
+  }
+
+  .calendario-dia {
+    min-height: 65px;
+    padding: 5px;
+  }
+
+  .calendario-atividade {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendario-navegacao h2 {
+    min-width: 150px;
+    font-size: 16px;
+  }
+}
