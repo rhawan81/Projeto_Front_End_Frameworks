@@ -1,31 +1,112 @@
-
-.estado-requisicao {
-  padding: 24px;
-  text-align: center;
-  color: #666;
+/* ===== Aviso discreto: dados de demonstração ===== */
+.estado-req-aviso {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 8px 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 10px;
+  color: var(--texto);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
-.aviso-contingencia,
-.erro-requisicao {
-  padding: 16px;
-  margin-bottom: 20px;
+.estado-req-aviso-icone {
+  display: inline-flex;
+  flex: none;
+  color: #d97706;
+}
+
+.estado-req-aviso-texto {
+  flex: 1;
+  min-width: 180px;
+  color: var(--texto-suave);
+}
+
+.estado-req-aviso-texto strong {
+  color: var(--texto);
+  font-weight: 600;
+}
+
+/* ===== Botão Tentar novamente ===== */
+.estado-req-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
   border-radius: 8px;
-  background-color: #fff3cd;
-  color: #664d03;
-}
-
-.erro-requisicao {
-  background-color: #f8d7da;
-  color: #842029;
-}
-
-.aviso-contingencia button,
-.erro-requisicao button {
-  margin-top: 8px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
+  color: var(--texto);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  background-color: #333;
-  color: white;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.estado-req-botao:hover {
+  border-color: var(--primario);
+  color: var(--primario);
+}
+
+.estado-req-botao:focus-visible {
+  outline: 2px solid var(--primario);
+  outline-offset: 2px;
+}
+
+/* ===== Erro sem dados ===== */
+.estado-req-erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid var(--alta);
+  border-radius: 12px;
+  color: var(--texto);
+  font-size: 14px;
+}
+
+.estado-req-erro span {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+/* ===== Carregando ===== */
+.estado-req-carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 0;
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+.estado-req-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--borda);
+  border-top-color: var(--primario);
+  border-radius: 50%;
+  animation: estado-req-girar 0.8s linear infinite;
+}
+
+@keyframes estado-req-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Vazio ===== */
+.estado-req-vazio {
+  padding: 30px 0;
+  color: var(--texto-suave);
+  text-align: center;
 }

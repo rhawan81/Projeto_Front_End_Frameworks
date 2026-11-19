@@ -1,4 +1,3 @@
-
 import { Route, Routes, Navigate } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import RotaProtegida from "./auth/RotaProtegida";
@@ -10,8 +9,10 @@ import Atividades from "./pages/Atividades";
 import AtividadeForm from "./pages/AtividadeForm";
 import Configuracoes from "./pages/Configuracoes";
 import Pomodoro from "./pages/Pomodoro";
-import EmBreve from "./pages/EmBreve";
 import Materias from "./pages/materias";
+import Calendario from "./pages/Calendario";
+import Prioridades from "./pages/Prioridades";
+import Estatisticas from "./pages/Estatisticas";
 import "./App.css";
 
 function App() {
@@ -53,10 +54,10 @@ function App() {
         {/* Matérias */}
         <Route path="/materias" element={<Materias />} />
 
-        {/* Páginas secundárias */}
-        <Route path="/calendario" element={<EmBreve titulo="Calendário" />} />
-        <Route path="/prioridades" element={<EmBreve titulo="Prioridades" />} />
-        <Route path="/estatisticas" element={<EmBreve titulo="Estatísticas" />} />
+        {/* Páginas de acompanhamento */}
+        <Route path="/calendario" element={<Calendario />} />
+        <Route path="/prioridades" element={<Prioridades />} />
+        <Route path="/estatisticas" element={<Estatisticas />} />
       </Route>
 
       {/* Rota coringa */}
