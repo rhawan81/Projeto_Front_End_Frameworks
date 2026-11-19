@@ -4,12 +4,15 @@ import RotaProtegida from "./auth/RotaProtegida";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import Atividades from "./pages/Atividades";
 import AtividadeForm from "./pages/AtividadeForm";
 import Configuracoes from "./pages/Configuracoes";
 import Pomodoro from "./pages/Pomodoro";
-import EmBreve from "./pages/EmBreve";
 import Materias from "./pages/materias";
+import Calendario from "./pages/Calendario";
+import Prioridades from "./pages/Prioridades";
+import Estatisticas from "./pages/Estatisticas";
 import "./App.css";
 
 function App() {
@@ -18,7 +21,7 @@ function App() {
       {/* Rota pública de Login */}
       <Route path="/login" element={<Login />} />
 
-      {/* Rotas protegidas (exigem que o usuário esteja logado) */}
+      {/* Rotas protegidas */}
       <Route
         element={
           <RotaProtegida>
@@ -27,13 +30,18 @@ function App() {
         }
       >
         <Route path="/" element={<Home />} />
+
+        {/* Dashboard integrado à API */}
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/atividades" element={<Atividades />} />
         <Route path="/atividades/nova" element={<AtividadeForm />} />
         <Route path="/atividades/:id/editar" element={<AtividadeForm />} />
+
         <Route path="/pomodoro" element={<Pomodoro />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
-        
-        {/* Rota administrativa exclusiva para perfil de Administrador (ADM) */}
+
+        {/* Rota administrativa */}
         <Route
           path="/admin"
           element={
@@ -43,14 +51,16 @@ function App() {
           }
         />
 
-        {/* Páginas secundárias / recursos futuros */}
+        {/* Matérias */}
         <Route path="/materias" element={<Materias />} />
-        <Route path="/calendario" element={<EmBreve titulo="Calendário" />} />
-        <Route path="/prioridades" element={<EmBreve titulo="Prioridades" />} />
-        <Route path="/estatisticas" element={<EmBreve titulo="Estatísticas" />} />
+
+        {/* Páginas de acompanhamento */}
+        <Route path="/calendario" element={<Calendario />} />
+        <Route path="/prioridades" element={<Prioridades />} />
+        <Route path="/estatisticas" element={<Estatisticas />} />
       </Route>
 
-      {/* Rota coringa: redireciona para a raiz */}
+      {/* Rota coringa */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
