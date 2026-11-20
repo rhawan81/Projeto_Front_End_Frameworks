@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -31,13 +32,15 @@ export default function Login() {
 
   const [erros, setErros] = useState({});
 
-  // Destino após login (redireciona para onde o usuário tentou acessar ou para a raiz)
+  // Destino após login
   const deOndeVem = location.state?.from?.pathname || "/";
 
   function handleChange(e) {
     const { name, value } = e.target;
+
     setForm((atual) => ({ ...atual, [name]: value }));
     setErroGeral("");
+
     if (erros[name]) {
       setErros((antigos) => ({ ...antigos, [name]: "" }));
     }
@@ -67,11 +70,13 @@ export default function Login() {
     }
 
     setErros(novosErros);
+
     return Object.keys(novosErros).length === 0;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     if (!validar()) return;
 
     setCarregando(true);
@@ -79,41 +84,51 @@ export default function Login() {
 
     try {
       if (modoCadastro) {
-        const res = cadastrarUsuario({
+        // Cadastro conectado ao backend
+        const res = await cadastrarUsuario({
           nome: form.nome,
           email: form.email,
           senha: form.senha,
-          papel: "estudante",
         });
 
         if (!res.sucesso) {
           setErroGeral(res.erro);
-          setCarregando(false);
           return;
         }
 
-        mostrarToast("Cadastro realizado com sucesso! Faça seu login.", "sucesso");
+        mostrarToast(
+          "Cadastro realizado com sucesso! Faça seu login.",
+          "sucesso"
+        );
+
         setModoCadastro(false);
-        setForm((atual) => ({ ...atual, senha: "", confirmarSenha: "" }));
+
+        setForm((atual) => ({
+          ...atual,
+          senha: "",
+          confirmarSenha: "",
+        }));
       } else {
-        const res = login(form.email, form.senha);
+        // Login conectado ao backend
+        const res = await login(form.email, form.senha);
 
         if (!res.sucesso) {
           setErroGeral(res.erro);
-          setCarregando(false);
           return;
         }
 
         mostrarToast(`Bem-vindo(a), ${res.usuario.nome}!`, "sucesso");
+
         navigate(deOndeVem, { replace: true });
       }
-    } catch {
-      setErroGeral("Ocorreu um erro inesperado. Tente novamente.");
+    } catch (erro) {
+      setErroGeral(
+        erro.message || "Ocorreu um erro inesperado. Tente novamente."
+      );
     } finally {
       setCarregando(false);
     }
   }
-
 
   return (
     <div className="login-container">
@@ -135,6 +150,7 @@ export default function Login() {
         <div className="login-cabecalho">
           <div className="login-icone-app">📘</div>
           <h1>Organizador de Estudos</h1>
+
           <p className="login-subtitulo">
             {modoCadastro
               ? "Crie sua conta de estudante e organize sua vida acadêmica."
@@ -154,10 +170,12 @@ export default function Login() {
           {modoCadastro && (
             <div className="campo-grupo">
               <label htmlFor="campo-nome">Nome Completo</label>
+
               <div className="campo-com-icone">
                 <span className="icone-input">
                   <IconeUsuario />
                 </span>
+
                 <input
                   id="campo-nome"
                   type="text"
@@ -167,14 +185,17 @@ export default function Login() {
                   onChange={handleChange}
                 />
               </div>
+
               {erros.nome && <span className="erro">{erros.nome}</span>}
             </div>
           )}
 
           <div className="campo-grupo">
             <label htmlFor="campo-email">E-mail</label>
+
             <div className="campo-com-icone">
               <span className="icone-input">@</span>
+
               <input
                 id="campo-email"
                 type="email"
@@ -185,15 +206,18 @@ export default function Login() {
                 autoComplete="email"
               />
             </div>
+
             {erros.email && <span className="erro">{erros.email}</span>}
           </div>
 
           <div className="campo-grupo">
             <label htmlFor="campo-senha">Senha</label>
+
             <div className="campo-com-icone">
               <span className="icone-input">
                 <IconeCadeado />
               </span>
+
               <input
                 id="campo-senha"
                 type="password"
@@ -204,16 +228,19 @@ export default function Login() {
                 autoComplete={modoCadastro ? "new-password" : "current-password"}
               />
             </div>
+
             {erros.senha && <span className="erro">{erros.senha}</span>}
           </div>
 
           {modoCadastro && (
             <div className="campo-grupo">
               <label htmlFor="campo-confirmar">Confirmar Senha</label>
+
               <div className="campo-com-icone">
                 <span className="icone-input">
                   <IconeCadeado />
                 </span>
+
                 <input
                   id="campo-confirmar"
                   type="password"
@@ -223,6 +250,7 @@ export default function Login() {
                   onChange={handleChange}
                 />
               </div>
+
               {erros.confirmarSenha && (
                 <span className="erro">{erros.confirmarSenha}</span>
               )}
@@ -234,13 +262,11 @@ export default function Login() {
             className="botao-primario botao-bloco"
             disabled={carregando}
           >
-            {carregando ? (
-              "Processando..."
-            ) : modoCadastro ? (
-              "Cadastrar Conta"
-            ) : (
-              "Entrar no Sistema"
-            )}
+            {carregando
+              ? "Processando..."
+              : modoCadastro
+                ? "Cadastrar Conta"
+                : "Entrar no Sistema"}
           </button>
         </form>
 
@@ -276,7 +302,6 @@ export default function Login() {
             </p>
           )}
         </div>
-
       </div>
     </div>
   );

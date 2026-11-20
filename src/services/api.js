@@ -1,12 +1,15 @@
-// Base da API REST configurada no arquivo .env (com fallback seguro)
+
+// API externa utilizada nas funcionalidades de demonstração
 const API_URL = (
   import.meta.env.VITE_API_URL || "https://jsonplaceholder.typicode.com"
 ).replace(/\/$/, "");
 
-/**
- * Função utilitária centralizada para chamadas HTTP Fetch.
- * Trata erros de rede, parse de JSON e cabeçalhos padrão.
- */
+// API do backend Spring Boot, responsável pela autenticação
+const AUTH_API_URL = (
+  import.meta.env.VITE_AUTH_API_URL || "http://localhost:8080"
+).replace(/\/$/, "");
+
+// Requisições para a API externa
 async function request(endpoint, options = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
     headers: {
@@ -20,15 +23,71 @@ async function request(endpoint, options = {}) {
     throw new Error(`Erro na API (${response.status}): ${response.statusText}`);
   }
 
-  if (response.status === 204) {
-    return null;
-  }
+  if (response.status === 204) return null;
 
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 }
 
-// Operações CRUD do recurso /todos da API REST
+// Requisições para o backend de autenticação
+async function authRequest(endpoint, dados) {
+  let response;
+
+  try {
+    response = await fetch(`${AUTH_API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dados),
+    });
+  } catch {
+    throw new Error(
+      "Não foi possível conectar ao backend. Verifique se o Spring Boot está iniciado."
+    );
+  }
+
+  const texto = await response.text();
+  let resultado = null;
+
+  try {
+    resultado = texto ? JSON.parse(texto) : null;
+  } catch {
+    resultado = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      resultado?.message ||
+      resultado?.mensagem ||
+      resultado?.erro ||
+      (response.status === 401
+        ? "E-mail ou senha incorretos."
+        : `Erro na autenticação (${response.status}).`)
+    );
+  }
+
+  return resultado;
+}
+
+// Login pelo backend
+export function autenticarUsuario(email, senha) {
+  return authRequest("/auth/login", {
+    email,
+    senha,
+  });
+}
+
+// Cadastro pelo backend
+export function registrarUsuario({ nome, email, senha }) {
+  return authRequest("/auth/register", {
+    nome,
+    email,
+    senha,
+  });
+}
+
+// Operações CRUD da API externa /todos
 export function buscarTodos() {
   return request("/todos?userId=1");
 }
@@ -53,27 +112,24 @@ export function excluirTodo(id) {
   });
 }
 
-/**
- * Testa a conectividade com a API REST configurada.
- * Retorna tempo de resposta e status.
- */
+// Testa a conexão com a API externa
 export async function testarConexaoApi() {
   const inicio = performance.now();
+
   try {
     const dados = await request("/todos/1");
-    const fim = performance.now();
+
     return {
       sucesso: true,
-      tempoMs: Math.round(fim - inicio),
+      tempoMs: Math.round(performance.now() - inicio),
       url: API_URL,
       status: "Online",
       exemplo: dados,
     };
   } catch (erro) {
-    const fim = performance.now();
     return {
       sucesso: false,
-      tempoMs: Math.round(fim - inicio),
+      tempoMs: Math.round(performance.now() - inicio),
       url: API_URL,
       status: "Offline",
       erro: erro.message,
@@ -81,17 +137,17 @@ export async function testarConexaoApi() {
   }
 }
 
-/**
- * Busca dados da API e converte para o formato de atividades do Organizador de Estudos.
- */
+// Busca atividades de demonstração da API externa
 export async function buscarAtividadesDaApi() {
   const todos = await request("/todos?_limit=6");
+
   const materiasExemplo = [
     "Algoritmos e Programação",
     "Banco de Dados",
     "Sistemas Operacionais",
     "Engenharia de Software",
   ];
+
   const prioridades = ["alta", "media", "baixa"];
 
   return todos.map((item, index) => ({
@@ -108,4 +164,4 @@ export async function buscarAtividadesDaApi() {
   }));
 }
 
-export { API_URL };
+export { API_URL, AUTH_API_URL };
