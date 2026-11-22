@@ -458,7 +458,7 @@ function Materias() {
             vazio={false}
             onTentarNovamente={carregarDados}
         >
-            <main className="pagina-materias">
+            <section className="pagina-materias">
 
                 {/* Cabeçalho da página */}
                 <div className="materias-topo">
@@ -1081,7 +1081,7 @@ function Materias() {
                         })}
                     </div>
                 )}
-            </main>
+            </section>
         </EstadoRequisicao>
     );
 }

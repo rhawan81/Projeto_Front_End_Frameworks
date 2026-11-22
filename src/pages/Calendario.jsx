@@ -125,7 +125,7 @@ export default function Calendario() {
   }
 
   return (
-    <main className="calendario-page">
+    <section className="calendario-page">
       <header className="calendario-header">
         <div>
           <h1>Calendário</h1>
@@ -331,6 +331,6 @@ export default function Calendario() {
           )}
         </section>
       </EstadoRequisicao>
-    </main>
+    </section>
   );
 }

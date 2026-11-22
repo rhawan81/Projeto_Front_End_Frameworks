@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../toast/ToastContext";
-import { carregarAtividades, salvarAtividades, carregarMaterias, garantirMateriaCadastrada } from "../data/storage";
+import { carregarAtividades, salvarAtividades, garantirMateriaCadastrada } from "../data/storage";
 import { testarConexaoApi, buscarAtividadesDaApi, API_URL } from "../services/api";
 import {
   IconeEscudo,
@@ -233,7 +233,7 @@ export default function Admin() {
         mostrarToast("Falha na conexão com a API.", "erro");
         registrarLog(`Falha no teste da API REST: ${res.erro}`, "erro");
       }
-    } catch (err) {
+    } catch {
       mostrarToast("Erro ao contatar API.", "erro");
     } finally {
       setTestandoApi(false);

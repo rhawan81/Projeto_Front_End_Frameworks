@@ -1,7 +1,7 @@
 
 import { apiFetch } from "./http";
 import { executarComFallback } from "./fallbackServices";
-import { atividadesContingencia } from "../data/dadosContingencia";
+import { carregarAtividades } from "../data/storage";
 
 export function buscarAtividades(filtros = {}) {
   const params = new URLSearchParams();
@@ -17,18 +17,19 @@ export function buscarAtividades(filtros = {}) {
   const query = params.toString();
   const endpoint = `/atividades${query ? `?${query}` : ""}`;
 
-  const dadosFallback = atividadesContingencia.filter((atividade) => {
-    const materiaOk =
-      !filtros.materia || atividade.materia === filtros.materia;
+  const obterFallback = () =>
+    carregarAtividades().filter((atividade) => {
+      const materiaOk =
+        !filtros.materia ||
+        atividade.materia?.toLowerCase() === filtros.materia.toLowerCase();
 
-    const situacaoOk =
-      !filtros.situacao || atividade.status === filtros.situacao;
+      const situacaoOk =
+        !filtros.situacao ||
+        String(atividade.status || "").toLowerCase() ===
+          String(filtros.situacao).toLowerCase();
 
-    return materiaOk && situacaoOk;
-  });
+      return materiaOk && situacaoOk;
+    });
 
-  return executarComFallback(
-    () => apiFetch(endpoint),
-    dadosFallback
-  );
+  return executarComFallback(() => apiFetch(endpoint), obterFallback);
 }

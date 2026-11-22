@@ -273,7 +273,8 @@ a {
 
 /* Dashboard */
 
-.dashboard-topo {
+.dashboard-topo,
+.dashboard-cabecalho {
   margin-bottom: 1.4rem;
 }
 
@@ -2921,4 +2922,202 @@ a {
 
 [data-tema="claro"] .cartao-resumo.cartao-destaque-alerta .rotulo {
   color: #7f1d1d;
+}
+
+/* ===================================================
+   NOTIFICAÇÕES NA TOPBAR & MENU MOBILE ("MAIS")
+   =================================================== */
+
+.topbar-notificacoes-wrap {
+  position: relative;
+}
+
+.botao-notificacoes {
+  position: relative;
+}
+
+.notificacoes-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--alta);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popover-notificacoes {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 310px;
+  max-width: calc(100vw - 2rem);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  z-index: 60;
+  overflow: hidden;
+}
+
+.popover-notificacoes-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.88rem;
+}
+
+.popover-notificacoes-topo span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--primario-suave);
+  color: var(--primario);
+}
+
+.popover-notificacoes-vazio {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.84rem;
+  color: var(--texto-suave);
+}
+
+.popover-notificacoes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.popover-notificacoes-lista li {
+  border-bottom: 1px solid var(--borda);
+}
+
+.popover-notificacoes-lista li:last-child {
+  border-bottom: none;
+}
+
+.popover-notificacoes-lista a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.7rem 1rem;
+  font-size: 0.83rem;
+  transition: background 0.15s ease;
+}
+
+.popover-notificacoes-lista a:hover {
+  background: var(--fundo);
+}
+
+.popover-notificacoes-lista strong {
+  color: var(--texto);
+}
+
+.popover-notificacoes-lista span {
+  color: var(--texto-suave);
+  font-size: 0.76rem;
+}
+
+.alerta-atrasada {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--alta);
+}
+
+.alerta-proxima {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--media);
+}
+
+.popover-notificacoes-rodape {
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--borda);
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primario);
+}
+
+.item-inferior-botao {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.menu-mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 64px;
+}
+
+.menu-mobile-painel {
+  width: 100%;
+  background: var(--superficie);
+  border-top: 1px solid var(--borda);
+  border-radius: 16px 16px 0 0;
+  padding: 1rem 1.2rem 1.2rem;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.menu-mobile-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.menu-mobile-fechar {
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  color: var(--texto-suave);
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.menu-mobile-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.menu-mobile-links a,
+.menu-mobile-sair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.menu-mobile-sair {
+  grid-column: 1 / -1;
+  color: var(--alta);
+  border-color: rgba(239, 68, 68, 0.3);
 }

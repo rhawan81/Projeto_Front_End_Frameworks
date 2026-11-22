@@ -36,12 +36,19 @@ function Atividades() {
   const [erro, setErro] = useState(null);
 
   const [aba, setAba] = useState("todas");
-  const [busca, setBusca] = useState("");
   const [mostrarFiltro, setMostrarFiltro] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filtroMateria = searchParams.get("materia") || "todas";
+  const busca = searchParams.get("busca") || "";
+
+  function atualizarFiltrosUrl({ materia = filtroMateria, termo = busca }) {
+    const params = {};
+    if (materia && materia !== "todas") params.materia = materia;
+    if (termo) params.busca = termo;
+    setSearchParams(params, { replace: true });
+  }
 
   const { mostrarToast } = useToast();
 
@@ -52,9 +59,6 @@ function Atividades() {
     try {
       const [resultadoAtividades, resultadoMaterias] =
         await Promise.all([buscarAtividades(), buscarMaterias()]);
-
-      console.log("ATIVIDADES:", resultadoAtividades);
-      console.log("MATERIAS:", resultadoMaterias);
 
       if (
         !Array.isArray(resultadoAtividades.dados) ||
@@ -230,7 +234,7 @@ function Atividades() {
                 type="text"
                 placeholder="Buscar atividades..."
                 value={busca}
-                onChange={(e) => setBusca(e.target.value)}
+                onChange={(e) => atualizarFiltrosUrl({ termo: e.target.value })}
               />
             </div>
 
@@ -256,13 +260,7 @@ function Atividades() {
               <select
                 value={filtroMateria}
                 onChange={(e) => {
-                  const materiaSelecionada = e.target.value;
-
-                  if (materiaSelecionada === "todas") {
-                    setSearchParams({});
-                  } else {
-                    setSearchParams({ materia: materiaSelecionada });
-                  }
+                  atualizarFiltrosUrl({ materia: e.target.value });
                 }}
               >
                 <option value="todas">Todas as matérias</option>
@@ -286,7 +284,7 @@ function Atividades() {
               className={`aba-materia-chip ${
                 filtroMateria === "todas" ? "chip-ativo" : ""
               }`}
-              onClick={() => setSearchParams({})}
+              onClick={() => atualizarFiltrosUrl({ materia: "todas" })}
             >
               Todas ({atividades.length})
             </button>
@@ -302,7 +300,7 @@ function Atividades() {
                   key={m}
                   type="button"
                   className={`aba-materia-chip ${ativa ? "chip-ativo" : ""}`}
-                  onClick={() => setSearchParams({ materia: m })}
+                  onClick={() => atualizarFiltrosUrl({ materia: m })}
                 >
                   <span
                     className="chip-ponto-cor"

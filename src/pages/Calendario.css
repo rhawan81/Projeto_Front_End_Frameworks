@@ -1,6 +1,6 @@
 .calendario-page {
   padding: 30px;
-  color: var(--texto, #fff);
+  color: var(--texto);
 }
 
 .calendario-header {
@@ -12,7 +12,7 @@
 }
 
 .calendario-subtitle {
-  color: #999;
+  color: var(--texto-suave);
   font-size: 12px;
   letter-spacing: 1.5px;
   font-weight: 700;
@@ -25,13 +25,13 @@
 
 .calendario-header p,
 .calendario-detalhes-header p {
-  color: #999;
+  color: var(--texto-suave);
   margin: 0;
   font-size: 14px;
 }
 
 .calendario-botao {
-  background: #4d5fff;
+  background: var(--primario);
   color: white;
   padding: 12px 18px;
   border-radius: 9px;
@@ -42,11 +42,12 @@
 
 .calendario-painel,
 .calendario-detalhes {
-  background: var(--card, #171b30);
-  border: 1px solid var(--borda, #303650);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
   border-radius: 12px;
   padding: 22px;
   margin-bottom: 20px;
+  box-shadow: var(--sombra);
 }
 
 .calendario-controles,

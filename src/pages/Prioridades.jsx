@@ -169,7 +169,7 @@ export default function Prioridades() {
   }
 
   return (
-    <main className="prioridades-page">
+    <section className="prioridades-page">
       <header className="prioridades-header">
         <div>
           <span className="prioridades-subtitle">ORGANIZAÇÃO</span>
@@ -285,6 +285,6 @@ export default function Prioridades() {
           ))}
         </section>
       </EstadoRequisicao>
-    </main>
+    </section>
   );
 }

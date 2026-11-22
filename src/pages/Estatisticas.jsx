@@ -217,7 +217,7 @@ export default function Estatisticas() {
   } = estatisticas;
 
   return (
-    <main className="estatisticas-page">
+    <section className="estatisticas-page">
       <header className="estatisticas-header">
         <div>
           <span className="estatisticas-subtitle">ACOMPANHAMENTO</span>
@@ -334,6 +334,6 @@ export default function Estatisticas() {
           </>
         )}
       </EstadoRequisicao>
-    </main>
+    </section>
   );
 }

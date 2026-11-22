@@ -23,10 +23,15 @@ export async function executarComFallback(
   requisicao,
   dadosContingencia
 ) {
+  const obterFallback = () =>
+    typeof dadosContingencia === "function"
+      ? dadosContingencia()
+      : dadosContingencia;
+
   // Sem API configurada: usa os dados locais, sem aviso.
   if (!API_URL) {
     return {
-      dados: dadosContingencia,
+      dados: obterFallback(),
       origem: "local",
       erro: null,
     };
@@ -43,12 +48,12 @@ export async function executarComFallback(
     };
   } catch (erro) {
     console.warn(
-      "API indisponível. Utilizando dados de contingência.",
+      "API indisponível. Utilizando dados locais de contingência.",
       erro.message
     );
 
     return {
-      dados: dadosContingencia,
+      dados: obterFallback(),
       origem: "contingencia",
       erro: null,
     };

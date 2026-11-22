@@ -118,7 +118,7 @@ export default function Dashboard() {
       : 0;
 
   return (
-    <main className="dashboard-page">
+    <section className="dashboard-page">
       <header className="dashboard-header">
         <div>
           <span className="dashboard-subtitle">
@@ -132,7 +132,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <Link to="/atividades" className="dashboard-add-button">
+        <Link to="/atividades/nova" className="dashboard-add-button">
           + Nova atividade
         </Link>
       </header>
@@ -284,7 +284,7 @@ export default function Dashboard() {
           )}
         </section>
       </EstadoRequisicao>
-    </main>
+    </section>
   );
 }
 

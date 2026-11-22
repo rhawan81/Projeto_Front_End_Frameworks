@@ -1,11 +1,11 @@
 
 import { apiFetch } from "./http";
 import { executarComFallback } from "./fallbackServices";
-import { materiasContingencia } from "../data/dadosContingencia";
+import { carregarMaterias } from "../data/storage";
 
 export function buscarMaterias() {
   return executarComFallback(
     () => apiFetch("/materias"),
-    materiasContingencia
+    () => carregarMaterias()
   );
 }

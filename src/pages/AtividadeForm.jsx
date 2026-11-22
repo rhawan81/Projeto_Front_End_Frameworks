@@ -37,7 +37,7 @@ function AtividadeForm() {
     setMaterias(todas);
 
     if (modoEdicao) {
-      const atividade = atividades.find((a) => a.id === id);
+      const atividade = atividades.find((a) => String(a.id) === String(id));
       if (atividade) setForm({ ...FORM_VAZIO, ...atividade });
     } else {
       const materiaParam = searchParams.get("materia");
@@ -72,7 +72,9 @@ function AtividadeForm() {
     const atividades = carregarAtividades();
 
     if (modoEdicao) {
-      const novaLista = atividades.map((a) => (a.id === id ? { ...form, materia: nomeMateriaLimpo, id } : a));
+      const novaLista = atividades.map((a) =>
+        String(a.id) === String(id) ? { ...form, materia: nomeMateriaLimpo, id: a.id } : a
+      );
       salvarAtividades(novaLista);
       mostrarToast("Atividade atualizada com sucesso.");
     } else {
@@ -85,7 +87,7 @@ function AtividadeForm() {
   }
 
   function handleExcluir() {
-    const atividades = carregarAtividades().filter((a) => a.id !== id);
+    const atividades = carregarAtividades().filter((a) => String(a.id) !== String(id));
     salvarAtividades(atividades);
     mostrarToast("Atividade excluída.", "aviso");
     navigate("/atividades");

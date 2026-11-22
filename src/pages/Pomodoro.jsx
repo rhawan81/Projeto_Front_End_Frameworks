@@ -14,7 +14,7 @@ const MODOS = {
 
 /**
  * Emite sinal sonoro suave utilizando a Web Audio API nativa.
- * Funciona offline e sem dependências de arquivos de áudio externos.
+ *             
  */
 function tocarAlarmeFim() {
   try {
@@ -68,6 +68,8 @@ export default function Pomodoro() {
   });
 
   const intervaloRef = useRef(null);
+  const tempoRestanteRef = useRef(MODOS.foco.segundos);
+  const finalizarCicloRef = useRef(null);
 
   // Carrega matérias cadastradas e das atividades
   useEffect(() => {
@@ -87,27 +89,6 @@ export default function Pomodoro() {
   useEffect(() => {
     localStorage.setItem(CHAVE_HISTORICO_POMODORO, JSON.stringify(historico));
   }, [historico]);
-
-  // Gerenciamento do cronômetro
-  useEffect(() => {
-    if (ativo) {
-      intervaloRef.current = setInterval(() => {
-        setTempoRestante((tempoAtual) => {
-          if (tempoAtual <= 1) {
-            clearInterval(intervaloRef.current);
-            setAtivo(false);
-            finalizarCiclo();
-            return 0;
-          }
-          return tempoAtual - 1;
-        });
-      }, 1000);
-    } else {
-      clearInterval(intervaloRef.current);
-    }
-
-    return () => clearInterval(intervaloRef.current);
-  }, [ativo, modo, materiaSelecionada, materiaPersonalizada]);
 
   function finalizarCiclo() {
     tocarAlarmeFim();
@@ -130,18 +111,51 @@ export default function Pomodoro() {
     }
   }
 
+  useEffect(() => {
+    finalizarCicloRef.current = finalizarCiclo;
+  });
+
+  // Gerenciamento do cronômetro sem efeitos colaterais dentro de updater do setState
+  useEffect(() => {
+    if (!ativo) {
+      clearInterval(intervaloRef.current);
+      return;
+    }
+
+    intervaloRef.current = setInterval(() => {
+      if (tempoRestanteRef.current <= 1) {
+        clearInterval(intervaloRef.current);
+        tempoRestanteRef.current = 0;
+        setTempoRestante(0);
+        setAtivo(false);
+        finalizarCicloRef.current?.();
+      } else {
+        tempoRestanteRef.current -= 1;
+        setTempoRestante(tempoRestanteRef.current);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervaloRef.current);
+  }, [ativo]);
+
   function trocarModo(novoModo) {
     setModo(novoModo);
     setAtivo(false);
+    tempoRestanteRef.current = MODOS[novoModo].segundos;
     setTempoRestante(MODOS[novoModo].segundos);
   }
 
   function alternarTimer() {
+    if (!ativo && tempoRestanteRef.current <= 0) {
+      tempoRestanteRef.current = MODOS[modo].segundos;
+      setTempoRestante(MODOS[modo].segundos);
+    }
     setAtivo((prev) => !prev);
   }
 
   function reiniciarTimer() {
     setAtivo(false);
+    tempoRestanteRef.current = MODOS[modo].segundos;
     setTempoRestante(MODOS[modo].segundos);
   }
 
