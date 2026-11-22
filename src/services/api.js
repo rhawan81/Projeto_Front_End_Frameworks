@@ -1,6 +1,6 @@
-// Base da API REST configurada no arquivo .env (com fallback seguro)
+// Base da API externa de demonstração (JSONPlaceholder) usada no Painel ADM
 const API_URL = (
-  import.meta.env.VITE_API_URL || "https://jsonplaceholder.typicode.com"
+  import.meta.env.VITE_JSONPLACEHOLDER_URL || "https://jsonplaceholder.typicode.com"
 ).replace(/\/$/, "");
 
 /**

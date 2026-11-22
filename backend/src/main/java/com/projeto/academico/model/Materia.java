@@ -19,4 +19,7 @@ public class Materia {
     @NotBlank(message = "O nome da matéria é obrigatório")
     @Column(nullable = false, unique = true)
     private String nome;
+
+    @Column(length = 20)
+    private String cor;
 }

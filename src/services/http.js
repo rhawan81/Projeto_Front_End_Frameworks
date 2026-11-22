@@ -4,22 +4,37 @@ const API_URL = (
 
 export async function apiFetch(endpoint, options = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers: {
-            "Content-Type": "application/json",
-            ...options.headers,
-        },
-    });
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 
-    if (!response.ok) {
-       throw new Error(
-        `Erro na API: ${response.status} - ${response.statusText}`
-       ); 
+  if (!response.ok) {
+    let mensagem = `Erro na API: ${response.status} - ${response.statusText}`;
+
+    try {
+      const corpoErro = await response.json();
+      if (corpoErro?.message) {
+        mensagem = corpoErro.message;
+      }
+    } catch {
+      // Mantém mensagem padrão caso o corpo não seja JSON
     }
 
-    if (response.status === 204) {
-        return null;
-    }
+    const erro = new Error(mensagem);
+    erro.status = response.status;
+    erro.isHttpError = true;
+    throw erro;
+  }
 
-    return response.json();
+  if (response.status === 204) {
+    return null;
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
+
+export { API_URL };
