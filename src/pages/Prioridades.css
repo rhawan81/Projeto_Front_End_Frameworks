@@ -1,0 +1,342 @@
+.prioridades-page {
+  padding: 30px;
+  color: var(--texto);
+}
+
+.prioridades-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.prioridades-subtitle {
+  color: var(--texto-suave);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.prioridades-header h1 {
+  margin: 8px 0;
+  font-size: 30px;
+  color: var(--texto);
+}
+
+.prioridades-header p {
+  color: var(--texto-suave);
+  margin: 0;
+  font-size: 14px;
+}
+
+.prioridades-botao {
+  background: var(--primario);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 9px;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ===== Mais urgentes ===== */
+.prioridades-urgentes {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: var(--sombra);
+}
+
+.prioridades-urgentes-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.prioridades-urgentes-topo h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--texto);
+}
+
+.prioridades-urgentes-topo span {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.prioridades-urgentes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prioridades-urgentes-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+}
+
+.prioridades-urgentes-lista li.prio-alta { border-left-color: var(--alta); }
+.prioridades-urgentes-lista li.prio-media { border-left-color: var(--media); }
+.prioridades-urgentes-lista li.prio-baixa { border-left-color: var(--baixa); }
+
+.prioridades-urgentes-lista li > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prioridades-urgentes-lista strong {
+  font-size: 14px;
+  color: var(--texto);
+}
+
+.prioridades-urgentes-lista li > div:first-child span {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.prioridades-urgentes-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.prioridades-urgentes-info a,
+.prioridades-acoes a {
+  color: var(--primario);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ===== Filtro de situação ===== */
+.prioridades-filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.prioridades-filtros button {
+  padding: 7px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.prioridades-filtros button:hover { border-color: var(--primario); }
+
+.prioridades-filtros button.ativo {
+  background: var(--primario);
+  border-color: var(--primario);
+  color: #fff;
+}
+
+/* ===== Colunas ===== */
+.prioridades-colunas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.prioridades-coluna {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-top: 4px solid transparent;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--sombra);
+}
+
+.prioridades-coluna.prio-alta { border-top-color: var(--alta); }
+.prioridades-coluna.prio-media { border-top-color: var(--media); }
+.prioridades-coluna.prio-baixa { border-top-color: var(--baixa); }
+
+.prioridades-coluna-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.prioridades-coluna-topo h2 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--texto);
+}
+
+.prioridades-coluna-topo > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.prioridades-coluna-topo strong {
+  font-size: 22px;
+  color: var(--texto);
+}
+
+.prioridades-coluna-topo span {
+  color: var(--texto-suave);
+  font-size: 11px;
+}
+
+.prioridades-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== Cartão ===== */
+.prioridades-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+}
+
+.prioridades-cartao.proxima {
+  border-color: var(--media);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.prioridades-cartao.atrasada {
+  border-color: var(--alta);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.prioridades-cartao.concluida { opacity: 0.75; }
+
+.prioridades-cartao.concluida strong {
+  text-decoration: line-through;
+}
+
+.prioridades-cartao-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.prioridades-cartao strong {
+  font-size: 14px;
+  color: var(--texto);
+}
+
+.prioridades-cartao-topo span { font-size: 11px; white-space: nowrap; }
+
+.status-concluida { color: #059669; font-weight: 600; }
+.status-pendente { color: #d97706; font-weight: 600; }
+
+.prioridades-materia {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.prioridades-prazo {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.prioridades-prazo.proxima { color: #d97706; font-weight: 700; }
+.prioridades-prazo.atrasada { color: var(--alta); font-weight: 700; }
+
+.prioridades-acoes {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 2px;
+}
+
+.prioridades-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.prioridades-btn:hover {
+  border-color: var(--primario);
+  color: var(--primario);
+}
+
+.prioridades-detalhes {
+  margin: 4px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--borda);
+}
+
+.prioridades-detalhes dt {
+  margin-top: 8px;
+  color: var(--texto-suave);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.prioridades-detalhes dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--texto);
+}
+
+.selo-prio { font-weight: 700; font-size: 12px; }
+.selo-prio.prio-alta { color: var(--alta); }
+.selo-prio.prio-media { color: #d97706; }
+.selo-prio.prio-baixa { color: #059669; }
+
+.prioridades-vazio {
+  margin: 0;
+  padding: 10px 0;
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+/* Tablet e celular */
+@media (max-width: 1000px) {
+  .prioridades-colunas { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .prioridades-page { padding: 18px; }
+
+  .prioridades-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .prioridades-urgentes,
+  .prioridades-coluna { padding: 14px; }
+
+  .prioridades-filtros { flex-wrap: wrap; }
+}

@@ -16,7 +16,7 @@ const itensPrincipais = [
   { to: "/pomodoro", label: "Pomodoro", icone: IconeRelogio },
 ];
 
-const itensExtras = [
+const itensOrganizacao = [
   { to: "/materias", label: "Matérias" },
   { to: "/calendario", label: "Calendário" },
   { to: "/prioridades", label: "Prioridades" },
@@ -63,9 +63,9 @@ function Sidebar() {
           </NavLink>
         )}
 
-        <div className="separador-nav">Em Breve</div>
+        <div className="separador-nav">Organização</div>
 
-        {itensExtras.map(({ to, label }) => (
+        {itensOrganizacao.map(({ to, label }) => (
           <NavLink key={to} to={to} className="item-nav item-nav-extra">
             <span className="ponto-extra" />
             {label}
