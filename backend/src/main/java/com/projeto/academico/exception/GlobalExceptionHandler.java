@@ -2,6 +2,9 @@ package com.projeto.academico.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -56,6 +59,33 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ApiErrorDTO> handleInvalidInput(
+            Exception ex,
+            HttpServletRequest request) {
+        ApiErrorDTO error = new ApiErrorDTO(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "JSON, campo ou parâmetro inválido. Confira os tipos e os valores dos enums.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiErrorDTO> handleResponseStatusException(
+            ResponseStatusException ex,
+            HttpServletRequest request) {
+        var status = ex.getStatusCode();
+        ApiErrorDTO error = new ApiErrorDTO(
+                status.value(),
+                HttpStatus.valueOf(status.value()).getReasonPhrase(),
+                ex.getReason() != null ? ex.getReason() : "Requisição não permitida.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(error);
     }
 
     @ExceptionHandler(Exception.class)

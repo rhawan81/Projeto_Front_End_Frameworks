@@ -1,0 +1,1264 @@
+{
+  "info": {
+    "name": "API Atividades e Estatísticas — AV2",
+    "_postman_id": "5a8087c0-56b7-4889-b7df-caa1fbc07182",
+    "description": "Execute em ordem com backend Spring Boot ativo. Configure emailA, senhaA, emailB, senhaB (credenciais de TESTE distintas) nas variáveis da coleção. Tokens e IDs são preenchidos automaticamente. Não publique a coleção depois de executar com tokens reais.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Cadastrar usuário A (201 ou 409 se já existe)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nome\":\"Estudante A\",\"email\":\"{{emailA}}\",\"senha\":\"{{senhaA}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Cadastro: 201 ou e-mail já cadastrado: 409\", () => pm.expect([201,409]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Login A: guardar token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"{{emailA}}\",\"senha\":\"{{senhaA}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Login A: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) {",
+              " const dados = pm.response.json();",
+              " pm.test(\"JWT presente\", () => pm.expect(dados.token).to.be.a(\"string\").and.not.empty);",
+              " pm.collectionVariables.set(\"tokenA\", dados.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Criar matéria e guardar materiaId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/materias",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "materias"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nome\":\"{{materiaNome}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"materiaNome\", \"Matéria teste API \" + Date.now());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Matéria criada: 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) {",
+              " const dados = pm.response.json();",
+              " pm.collectionVariables.set(\"materiaId\", String(dados.id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Criar atividade e guardar atividadeId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Atividade do usuário A\",\"materiaId\":{{materiaId}},\"descricao\":\"Criada pelo Postman\",\"prazo\":\"{{prazo}}\",\"prioridade\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"prazo\", new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0, 10));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Atividade criada: 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) {",
+              " const dados = pm.response.json();",
+              " pm.test(\"Status padrão PENDENTE\", () => pm.expect(dados.status).to.eql(\"PENDENTE\"));",
+              " pm.test(\"Matéria por ID\", () => pm.expect(String(dados.materiaId)).to.eql(pm.collectionVariables.get(\"materiaId\")));",
+              " pm.collectionVariables.set(\"atividadeId\", String(dados.id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Listar minhas atividades",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Lista: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) {",
+              " const lista=pm.response.json();",
+              " pm.test(\"A inclui sua atividade\", () => pm.expect(lista.some(a=>String(a.id)===pm.collectionVariables.get(\"atividadeId\"))).to.eql(true));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Buscar atividade pelo ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Filtrar por matéria e situação",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades?materiaId={{materiaId}}&situacao=PENDENTE",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Filtro: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.test(\"Filtro retornou a atividade\", () => pm.expect(pm.response.json().some(a=>String(a.id)===pm.collectionVariables.get(\"atividadeId\"))).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Mudar para EM_ANDAMENTO",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}/situacao",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}",
+            "situacao"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"EM_ANDAMENTO\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PATCH: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.test(\"Status EM_ANDAMENTO\", () => pm.expect(pm.response.json().status).to.eql(\"EM_ANDAMENTO\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Consultar estatísticas de A",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/estatisticas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "estatisticas"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estatísticas A: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) {",
+              " const dados = pm.response.json();",
+              " pm.test(\"Conta ao menos a atividade de A\", () => pm.expect(dados.totais.total).to.be.at.least(1));",
+              " pm.test(\"Conta EM_ANDAMENTO\", () => pm.expect(dados.totais.emAndamento).to.be.at.least(1));",
+              " pm.test(\"Conta prioridade ALTA\", () => pm.expect(dados.porPrioridade.ALTA).to.be.at.least(1));",
+              " pm.test(\"Conta matéria\", () => pm.expect(dados.porMateria.some(m=>String(m.materiaId)===pm.collectionVariables.get(\"materiaId\"))).to.eql(true));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Editar atividade, preservando situação",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Atividade de A atualizada\",\"materiaId\":{{materiaId}},\"descricao\":\"Editada pelo Postman\",\"prazo\":\"{{prazo}}\",\"prioridade\":\"MEDIA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PUT: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) {",
+              " const a=pm.response.json();",
+              " pm.test(\"Título alterado\", () => pm.expect(a.titulo).to.eql(\"Atividade de A atualizada\"));",
+              " pm.test(\"Status preservado\", () => pm.expect(a.status).to.eql(\"EM_ANDAMENTO\"));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Concluir atividade",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}/situacao",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}",
+            "situacao"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"CONCLUIDA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code===200) pm.test(\"Status CONCLUIDA\",()=>pm.expect(pm.response.json().status).to.eql(\"CONCLUIDA\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Estatísticas refletem conclusão",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/estatisticas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "estatisticas"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code===200) pm.test(\"Concluídas\",()=>pm.expect(pm.response.json().totais.concluidas).to.be.at.least(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Validar matéria obrigatória",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Sem matéria\",\"prazo\":\"{{prazo}}\",\"prioridade\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Falta materiaId: 400\", () => pm.response.to.have.status(400));",
+              "if (pm.response.code === 400) pm.test(\"Detalhe materiaId\", () => pm.expect(pm.response.json().details).to.have.property(\"materiaId\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Validar prioridade inválida",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Prioridade inválida\",\"materiaId\":{{materiaId}},\"prazo\":\"{{prazo}}\",\"prioridade\":\"URGENTISSIMA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Validar prazo no passado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Prazo inválido\",\"materiaId\":{{materiaId}},\"prazo\":\"2000-01-01\",\"prioridade\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Negar consulta sem JWT",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/estatisticas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "estatisticas"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Negar JWT inválido",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer token-invalido",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/estatisticas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "estatisticas"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Negar área ADMIN a estudante",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/teste-permissoes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "teste-permissoes"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 - Cadastrar usuário B (201 ou 409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nome\":\"Estudante B\",\"email\":\"{{emailB}}\",\"senha\":\"{{senhaB}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Cadastro B: 201 ou 409\", () => pm.expect([201,409]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Login B: guardar token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"{{emailB}}\",\"senha\":\"{{senhaB}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Login B: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code===200) pm.collectionVariables.set(\"tokenB\", pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 - B lista somente as próprias atividades",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Lista B: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.test(\"B não enxerga a atividade de A\", () => pm.expect(pm.response.json().some(a=>String(a.id)===pm.collectionVariables.get(\"atividadeId\"))).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 - B não consulta atividade de A",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 - B não altera situação de A",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}/situacao",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}",
+            "situacao"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"CONCLUIDA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 - B não edita atividade de A",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Tentativa indevida\",\"materiaId\":{{materiaId}},\"prazo\":\"{{prazo}}\",\"prioridade\":\"ALTA\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 - B não exclui atividade de A",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 - B consulta suas estatísticas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenB}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/estatisticas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "estatisticas"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estatísticas B: 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.test(\"Matéria de teste de A não entra em B\", () => pm.expect(pm.response.json().porMateria.some(m=>String(m.materiaId)===pm.collectionVariables.get(\"materiaId\"))).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 - A exclui sua atividade",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 - Conferir exclusão: 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{tokenA}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/atividades/{{atividadeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "atividades",
+            "{{atividadeId}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "emailA",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "senhaA",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "emailB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "senhaB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenA",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenB",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "materiaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "atividadeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "materiaNome",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "prazo",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

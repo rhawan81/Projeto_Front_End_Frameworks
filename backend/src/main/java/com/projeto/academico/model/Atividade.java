@@ -24,9 +24,14 @@ public class Atividade {
     private String titulo;
 
     @NotNull(message = "A matéria é obrigatória")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "materia_id", nullable = false)
     private Materia materia;
+
+    @NotNull(message = "O usuário é obrigatório")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     @Column(columnDefinition = "TEXT")
     private String descricao;
@@ -45,4 +50,3 @@ public class Atividade {
     @Column(nullable = false)
     private StatusAtividade status;
 }
-

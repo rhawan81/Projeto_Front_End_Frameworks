@@ -80,6 +80,7 @@ public class SecurityConfig {
                         // Recursos protegidos
                         .requestMatchers("/materias", "/materias/**").authenticated()
                         .requestMatchers("/atividades", "/atividades/**").authenticated()
+                        .requestMatchers("/estatisticas").authenticated()
 
                         // Demais requisições exigem autenticação
                         .anyRequest().authenticated()

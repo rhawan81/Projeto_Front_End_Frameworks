@@ -1,4 +1,11 @@
+# Arquivos gerados pelo Maven e banco de dados local
 /target/
 /data/
+*.mv.db
 *.trace.db
 *.lock.db
+
+# Configurações locais com segredos
+.env
+.env.*
+!.env.example
