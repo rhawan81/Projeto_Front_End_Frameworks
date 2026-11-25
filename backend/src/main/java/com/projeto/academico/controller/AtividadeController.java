@@ -2,10 +2,12 @@ package com.projeto.academico.controller;
 
 import com.projeto.academico.dto.AtividadeRequestDTO;
 import com.projeto.academico.dto.AtividadeResponseDTO;
-import com.projeto.academico.dto.AtividadeStatusDTO;
+import com.projeto.academico.dto.AtividadeSituacaoDTO;
+import com.projeto.academico.model.StatusAtividade;
 import com.projeto.academico.service.AtividadeService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -24,19 +26,24 @@ public class AtividadeController {
 
     @GetMapping
     public ResponseEntity<List<AtividadeResponseDTO>> listar(
+            @AuthenticationPrincipal String email,
+            @RequestParam(required = false) Long materiaId,
             @RequestParam(required = false) String materia,
-            @RequestParam(required = false) String situacao) {
-        return ResponseEntity.ok(service.listar(materia, situacao));
+            @RequestParam(required = false) StatusAtividade situacao) {
+        return ResponseEntity.ok(service.listar(email, materiaId, materia, situacao));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AtividadeResponseDTO> buscar(@PathVariable Long id) {
-        return ResponseEntity.ok(service.buscarPorId(id));
+    public ResponseEntity<AtividadeResponseDTO> buscarPorId(
+            @AuthenticationPrincipal String email, @PathVariable Long id) {
+        return ResponseEntity.ok(service.buscarPorId(email, id));
     }
 
     @PostMapping
-    public ResponseEntity<AtividadeResponseDTO> criar(@Valid @RequestBody AtividadeRequestDTO dados) {
-        AtividadeResponseDTO criada = service.criar(dados);
+    public ResponseEntity<AtividadeResponseDTO> criar(
+            @AuthenticationPrincipal String email,
+            @Valid @RequestBody AtividadeRequestDTO dados) {
+        AtividadeResponseDTO criada = service.criar(email, dados);
         URI localizacao = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(criada.id()).toUri();
         return ResponseEntity.created(localizacao).body(criada);
@@ -44,21 +51,24 @@ public class AtividadeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<AtividadeResponseDTO> atualizar(
+            @AuthenticationPrincipal String email,
             @PathVariable Long id,
             @Valid @RequestBody AtividadeRequestDTO dados) {
-        return ResponseEntity.ok(service.atualizar(id, dados));
+        return ResponseEntity.ok(service.atualizar(email, id, dados));
     }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<AtividadeResponseDTO> atualizarStatus(
+    @PatchMapping({"/{id}/situacao", "/{id}/status"})
+    public ResponseEntity<AtividadeResponseDTO> atualizarSituacao(
+            @AuthenticationPrincipal String email,
             @PathVariable Long id,
-            @Valid @RequestBody AtividadeStatusDTO dados) {
-        return ResponseEntity.ok(service.atualizarStatus(id, dados.status()));
+            @Valid @RequestBody AtividadeSituacaoDTO dados) {
+        return ResponseEntity.ok(service.atualizarSituacao(email, id, dados.status()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        service.excluir(id);
+    public ResponseEntity<Void> excluir(
+            @AuthenticationPrincipal String email, @PathVariable Long id) {
+        service.excluir(email, id);
         return ResponseEntity.noContent().build();
     }
 }

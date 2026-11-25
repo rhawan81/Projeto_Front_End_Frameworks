@@ -18,16 +18,39 @@ function normalizarParaFront(atividade) {
   };
 }
 
-function normalizarParaApi(dados) {
+function normalizarParaApi(dados, materiaIdResolvido = null) {
   return {
     titulo: String(dados.titulo || "").trim(),
     materia: String(dados.materia || "").trim(),
-    materiaId: dados.materiaId ?? null,
+    materiaId: materiaIdResolvido ?? dados.materiaId ?? null,
     descricao: String(dados.descricao || "").trim(),
     prazo: dados.prazo,
     prioridade: String(dados.prioridade || "media").toUpperCase(),
     status: String(dados.status || "pendente").toUpperCase(),
   };
+}
+
+// Resolve ou cria a matéria no backend quando apenas o nome da matéria foi informado no formulário
+async function resolverMateriaIdRemoto(dados) {
+  if (typeof dados.materiaId === "number" && dados.materiaId > 0) {
+    return dados.materiaId;
+  }
+  const nome = String(dados.materia || "").trim();
+  if (!nome) return null;
+
+  const listaRemota = await apiFetch("/materias");
+  if (Array.isArray(listaRemota)) {
+    const existente = listaRemota.find(
+      (m) => m.nome?.trim().toLowerCase() === nome.toLowerCase()
+    );
+    if (existente?.id) return Number(existente.id);
+  }
+
+  const criada = await apiFetch("/materias", {
+    method: "POST",
+    body: JSON.stringify({ nome }),
+  });
+  return criada?.id ? Number(criada.id) : null;
 }
 
 export async function buscarAtividades(filtros = {}) {
@@ -38,7 +61,7 @@ export async function buscarAtividades(filtros = {}) {
   }
 
   if (filtros.situacao) {
-    params.append("situacao", filtros.situacao);
+    params.append("situacao", String(filtros.situacao).toUpperCase());
   }
 
   const query = params.toString();
@@ -91,9 +114,12 @@ export async function buscarAtividadePorId(id) {
 }
 
 export async function criarAtividade(dados) {
-  const payload = normalizarParaApi(dados);
+  let payload = normalizarParaApi(dados);
 
   try {
+    const materiaId = await resolverMateriaIdRemoto(dados);
+    payload = normalizarParaApi(dados, materiaId);
+
     const criada = await apiFetch("/atividades", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -119,9 +145,12 @@ export async function criarAtividade(dados) {
 }
 
 export async function atualizarAtividade(id, dados) {
-  const payload = normalizarParaApi(dados);
+  let payload = normalizarParaApi(dados);
 
   try {
+    const materiaId = await resolverMateriaIdRemoto(dados);
+    payload = normalizarParaApi(dados, materiaId);
+
     const atualizada = await apiFetch(`/atividades/${id}`, {
       method: "PUT",
       body: JSON.stringify(payload),
@@ -151,7 +180,7 @@ export async function atualizarStatusAtividadeApi(id, novoStatus) {
   const statusLower = statusUpper.toLowerCase();
 
   try {
-    const atualizada = await apiFetch(`/atividades/${id}/status`, {
+    const atualizada = await apiFetch(`/atividades/${id}/situacao`, {
       method: "PATCH",
       body: JSON.stringify({ status: statusUpper }),
     });

@@ -12,52 +12,112 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
 
 @Configuration
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper mapper)
-            throws Exception {
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ObjectMapper mapper) throws Exception {
+
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                .headers(headers ->
+                        headers.frameOptions(
+                                HeadersConfigurer.FrameOptionsConfig::sameOrigin
+                        )
+                )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Console H2
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/materias", "/materias/**").permitAll()
-                        .requestMatchers("/atividades", "/atividades/**").permitAll()
-                        .anyRequest().authenticated())
+                        // Cadastro e login
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/auth/register",
+                                "/auth/login"
+                        ).permitAll()
+                        // Rotas administrativas da API
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // Recursos protegidos
+                        .requestMatchers("/materias", "/materias/**").authenticated()
+                        .requestMatchers("/atividades", "/atividades/**").authenticated()
+                        .requestMatchers("/estatisticas").authenticated()
+                        // Demais requisições exigem autenticação
+                        .anyRequest().authenticated()
+                )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, cause) ->
-                                escreverErro(response, mapper, HttpStatus.UNAUTHORIZED,
+                                escreverErro(
+                                        response,
+                                        mapper,
+                                        HttpStatus.UNAUTHORIZED,
                                         "Autenticação necessária para acessar este recurso.",
-                                        request.getRequestURI()))
+                                        request.getRequestURI()
+                                )
+                        )
                         .accessDeniedHandler((request, response, cause) ->
-                                escreverErro(response, mapper, HttpStatus.FORBIDDEN,
+                                escreverErro(
+                                        response,
+                                        mapper,
+                                        HttpStatus.FORBIDDEN,
                                         "Acesso negado ao recurso solicitado.",
-                                        request.getRequestURI())))
+                                        request.getRequestURI()
+                                )
+                        )
+                )
+                // Filtro JWT antes da autenticação padrão
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
                 .build();
     }
 
-    private void escreverErro(HttpServletResponse response, ObjectMapper mapper,
-                              HttpStatus status, String mensagem, String caminho) throws IOException {
+    private void escreverErro(
+            HttpServletResponse response,
+            ObjectMapper mapper,
+            HttpStatus status,
+            String mensagem,
+            String caminho) throws IOException {
+
         response.setStatus(status.value());
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
+
         ApiErrorDTO erro = new ApiErrorDTO(
                 status.value(),
                 status.getReasonPhrase(),
                 mensagem,
                 caminho
         );
+
         mapper.writeValue(response.getWriter(), erro);
     }
 }

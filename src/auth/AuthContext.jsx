@@ -1,11 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiFetch } from "../services/http";
+import { autenticarUsuario, registrarUsuario } from "../services/api";
 
-// Chaves para persistência no localStorage (nenhuma senha em texto puro é armazenada)
 const CHAVE_SESSAO = "organizador-estudos:auth";
 const CHAVE_USUARIOS = "organizador-estudos:usuarios";
 
-// Função utilitária determinística para verificar credencial em modo contingência sem guardar senha em texto puro
+// Função utilitária determinística para verificar credencial em modo contingência offline sem guardar senha em texto puro
 function gerarHashContingencia(texto) {
   const str = String(texto || "");
   let hash = 5381;
@@ -15,11 +14,9 @@ function gerarHashContingencia(texto) {
   return (hash >>> 0).toString(16);
 }
 
-// Hashes pré-calculados para contingência offline (sem senhas em texto puro no código ou no localStorage)
 const HASH_PERFIL_ADMIN = "2651f8bc";
 const HASH_PERFIL_ESTUDANTE = "cf0bc6c5";
 
-// Perfil padrão do Administrador do sistema (sem campo senha)
 export const ADMIN_PADRAO = {
   id: "usr-admin",
   nome: "Prof. Henrique (ADM)",
@@ -30,7 +27,6 @@ export const ADMIN_PADRAO = {
   credencialHash: HASH_PERFIL_ADMIN,
 };
 
-// Lista inicial de usuários de contingência (Integrantes da equipe do projeto, sem senhas em texto puro)
 const USUARIOS_INICIAIS = [
   ADMIN_PADRAO,
   {
@@ -80,87 +76,74 @@ const USUARIOS_INICIAIS = [
   },
 ];
 
-function sanitizarUsuarioParaStorage(u) {
-  const { senha: _senhaRemovida, ...resto } = u || {};
-  return {
-    ...resto,
-    credencialHash:
-      resto.credencialHash ||
-      (resto.papel === "admin" ? HASH_PERFIL_ADMIN : HASH_PERFIL_ESTUDANTE),
-  };
-}
-
-function sanitizarSessao(u, token = null) {
-  return {
-    id: u.id || `usr-${Date.now()}`,
-    nome: u.nome || u.name || "Estudante",
-    email: u.email,
-    papel:
-      String(u.papel || u.role || "estudante").toLowerCase() === "admin"
-        ? "admin"
-        : "estudante",
-    status: String(u.status || "ativo").toLowerCase(),
-    criadoEm: u.criadoEm || new Date().toISOString().split("T")[0],
-    ...(token || u.token ? { token: token || u.token } : {}),
-  };
-}
-
 const AuthContext = createContext(null);
 
+// Padroniza o perfil recebido do backend para o frontend
+function normalizarPapel(papel) {
+  return String(papel || "").toUpperCase() === "ADMIN" ? "admin" : "estudante";
+}
+
+// Remove dados antigos de senha que possam estar salvos no navegador
+function limparUsuario(usuario) {
+  if (!usuario) return null;
+
+  const { senha: _s, password: _p, ...dados } = usuario;
+
+  return {
+    ...dados,
+    papel: normalizarPapel(dados.papel),
+    status: dados.status || "ativo",
+    credencialHash:
+      dados.credencialHash ||
+      (normalizarPapel(dados.papel) === "admin"
+        ? HASH_PERFIL_ADMIN
+        : HASH_PERFIL_ESTUDANTE),
+  };
+}
+
 export function AuthProvider({ children }) {
-  // Usuários cadastrados no sistema (sanitizados para nunca guardar senha em texto puro)
   const [usuarios, setUsuarios] = useState(() => {
     try {
       const salvo = localStorage.getItem(CHAVE_USUARIOS);
       if (salvo) {
-        const parsed = JSON.parse(salvo);
-        if (Array.isArray(parsed)) {
-          const sanitizados = parsed.map(sanitizarUsuarioParaStorage);
-          const indexAdmin = sanitizados.findIndex(
+        const lista = JSON.parse(salvo);
+        if (Array.isArray(lista) && lista.length > 0) {
+          const sanitizados = lista.map(limparUsuario);
+          const temAdmin = sanitizados.some(
             (u) => u.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()
           );
-          if (indexAdmin >= 0) {
-            sanitizados[indexAdmin] = {
-              ...sanitizados[indexAdmin],
-              ...ADMIN_PADRAO,
-            };
-            return sanitizados;
-          }
-          return [ADMIN_PADRAO, ...sanitizados];
+          return temAdmin ? sanitizados : [ADMIN_PADRAO, ...sanitizados];
         }
       }
     } catch {
-      // Caso ocorra erro de parse, retorna padrão
+      // Usa lista inicial em caso de erro de parse
     }
-    const iniciais = USUARIOS_INICIAIS.map(sanitizarUsuarioParaStorage);
+    const iniciais = USUARIOS_INICIAIS.map(limparUsuario);
     localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(iniciais));
     return iniciais;
   });
 
-  // Usuário atualmente autenticado (sem senha)
   const [usuario, setUsuario] = useState(() => {
     try {
       const salvo = localStorage.getItem(CHAVE_SESSAO);
       if (!salvo) return null;
-      const parsed = JSON.parse(salvo);
-      return parsed ? sanitizarSessao(parsed) : null;
+      const sessao = JSON.parse(salvo);
+      return sessao ? limparUsuario(sessao) : null;
     } catch {
       return null;
     }
   });
 
-  // Sincroniza a lista de usuários sanitizados no localStorage
   useEffect(() => {
     localStorage.setItem(
       CHAVE_USUARIOS,
-      JSON.stringify(usuarios.map(sanitizarUsuarioParaStorage))
+      JSON.stringify(usuarios.map(limparUsuario))
     );
   }, [usuarios]);
 
-  // Sincroniza a sessão ativa no localStorage (sem armazenar senha)
   useEffect(() => {
     if (usuario) {
-      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sanitizarSessao(usuario)));
+      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(limparUsuario(usuario)));
     } else {
       localStorage.removeItem(CHAVE_SESSAO);
     }
@@ -177,66 +160,51 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  // Autentica usuário tentando primeiro o endpoint da API REST e usando contingência local caso o servidor esteja indisponível
+  // Login utilizando o backend Spring Boot (com contingência offline caso o servidor não esteja iniciado)
   async function login(email, senha) {
     const emailLimpo = email.trim().toLowerCase();
-    const hashDigitado = gerarHashContingencia(senha);
 
-    // 1. Tenta autenticar via API REST (/auth/login)
     try {
-      const respostaApi = await apiFetch("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email: emailLimpo, senha }),
-      });
+      const resposta = await autenticarUsuario(emailLimpo, senha);
 
-      if (respostaApi) {
-        const dadosUsuarioApi = respostaApi.usuario || respostaApi.user || respostaApi;
-        const dadosSessao = sanitizarSessao(
-          { ...dadosUsuarioApi, email: dadosUsuarioApi.email || emailLimpo },
-          respostaApi.token
-        );
+      if (resposta?.token) {
+        const dadosSessao = {
+          id: resposta.usuarioId,
+          nome: resposta.nome,
+          email: resposta.email,
+          papel: normalizarPapel(resposta.papel),
+          status: "ativo",
+          token: resposta.token,
+          tipo: resposta.tipo || "Bearer",
+        };
+
         setUsuario(dadosSessao);
-        return { sucesso: true, usuario: dadosSessao, origem: "api" };
-      }
-    } catch (erro) {
-      // Se o endpoint /auth/login existir e retornar 403 explícito de conta bloqueada, rejeita
-      if (erro.status === 403) {
         return {
-          sucesso: false,
-          erro: erro.message || "Acesso negado (403).",
+          sucesso: true,
+          usuario: dadosSessao,
+          origem: "api",
         };
       }
-      // Caso o servidor esteja offline ou /auth/login não esteja mapeado no SecurityConfig, valida pela contingência local
-    }
-
-    // 2. Contingência local
-    if (emailLimpo === ADMIN_PADRAO.email.toLowerCase()) {
-      if (hashDigitado !== HASH_PERFIL_ADMIN) {
-        return { sucesso: false, erro: "Credenciais inválidas. Verifique sua senha." };
+    } catch (erro) {
+      // Se o backend Spring Boot está rodando e respondeu erro HTTP (ex: 401 credenciais inválidas), retorna o erro
+      if (!erro.isOffline) {
+        return {
+          sucesso: false,
+          erro: erro.message || "Não foi possível realizar o login.",
+        };
       }
-
-      const adminAtual =
-        usuarios.find((u) => u.email.toLowerCase() === emailLimpo) || ADMIN_PADRAO;
-
-      const dadosSessao = sanitizarSessao({
-        ...adminAtual,
-        email: ADMIN_PADRAO.email,
-        papel: "admin",
-        status: "ativo",
-      });
-
-      setUsuario(dadosSessao);
-      return { sucesso: true, usuario: dadosSessao, origem: "contingencia" };
+      // Se o backend estiver desligado (isOffline), permite login em modo contingência para demonstração
     }
 
+    const hashDigitado = gerarHashContingencia(senha);
     const encontrado = usuarios.find(
-      (u) => u.email.toLowerCase() === emailLimpo
+      (u) => u.email?.toLowerCase() === emailLimpo
     );
 
     if (!encontrado) {
       return {
         sucesso: false,
-        erro: "Usuário não encontrado. Verifique o e-mail informado.",
+        erro: "Usuário não encontrado (servidor offline).",
       };
     }
 
@@ -244,7 +212,7 @@ export function AuthProvider({ children }) {
     if (hashDigitado !== hashEsperado) {
       return {
         sucesso: false,
-        erro: "Credenciais inválidas. Verifique sua senha.",
+        erro: "E-mail ou senha incorretos.",
       };
     }
 
@@ -255,9 +223,16 @@ export function AuthProvider({ children }) {
       };
     }
 
-    const dadosSessao = sanitizarSessao(encontrado);
+    const dadosSessao = {
+      ...limparUsuario(encontrado),
+      origem: "contingencia",
+    };
     setUsuario(dadosSessao);
-    return { sucesso: true, usuario: dadosSessao, origem: "contingencia" };
+    return {
+      sucesso: true,
+      usuario: dadosSessao,
+      origem: "contingencia",
+    };
   }
 
   // Encerra a sessão removendo os dados do localStorage
@@ -265,94 +240,121 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   }
 
-  // Cadastro de novo usuário (tenta via API e mantém contingência local sem salvar senha em texto puro)
+  // Cadastro utilizando o backend Spring Boot (com contingência offline caso o servidor esteja desligado)
   async function cadastrarUsuario({ nome, email, senha, papel = "estudante" }) {
-    const emailNormalizado = email.trim().toLowerCase();
-    const existente = usuarios.some(
-      (u) => u.email.toLowerCase() === emailNormalizado
-    );
+    const emailLimpo = email.trim().toLowerCase();
 
-    if (existente) {
+    try {
+      const resposta = await registrarUsuario({
+        nome: nome.trim(),
+        email: emailLimpo,
+        senha,
+      });
+
+      const novoUsuario = {
+        id: resposta.usuarioId || `usr-${Date.now()}`,
+        nome: resposta.nome || nome.trim(),
+        email: resposta.email || emailLimpo,
+        papel: normalizarPapel(resposta.papel || papel),
+        status: "ativo",
+        criadoEm: new Date().toISOString().split("T")[0],
+        credencialHash: gerarHashContingencia(senha),
+      };
+
+      setUsuarios((atuais) => {
+        const semDuplicado = atuais.filter(
+          (item) => item.email?.toLowerCase() !== novoUsuario.email
+        );
+        return [...semDuplicado, novoUsuario];
+      });
+
+      return {
+        sucesso: true,
+        usuario: novoUsuario,
+      };
+    } catch (erro) {
+      if (!erro.isOffline) {
+        return {
+          sucesso: false,
+          erro: erro.message || "Não foi possível realizar o cadastro.",
+        };
+      }
+    }
+
+    // Contingência offline
+    const jaExiste = usuarios.some(
+      (item) => item.email?.toLowerCase() === emailLimpo
+    );
+    if (jaExiste) {
       return {
         sucesso: false,
         erro: "Este e-mail já está cadastrado no sistema.",
       };
     }
 
-    let idCriado = `usr-${Date.now()}`;
-
-    try {
-      const criadoApi = await apiFetch("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          nome: nome.trim(),
-          email: emailNormalizado,
-          senha,
-          papel,
-        }),
-      });
-      if (criadoApi?.id) {
-        idCriado = criadoApi.id;
-      }
-    } catch (erro) {
-      if (erro.status === 400 || erro.status === 409) {
-        return { sucesso: false, erro: erro.message };
-      }
-      // Prossegue em modo contingência caso o servidor esteja offline
-    }
-
-    const novo = {
-      id: idCriado,
+    const novoLocal = {
+      id: `usr-${Date.now()}`,
       nome: nome.trim(),
-      email: emailNormalizado,
-      papel,
+      email: emailLimpo,
+      papel: normalizarPapel(papel),
       status: "ativo",
       criadoEm: new Date().toISOString().split("T")[0],
       credencialHash: gerarHashContingencia(senha),
     };
 
-    setUsuarios((atuais) => [...atuais, novo]);
-    return { sucesso: true, usuario: sanitizarSessao(novo) };
+    setUsuarios((atuais) => [...atuais, novoLocal]);
+    return {
+      sucesso: true,
+      usuario: novoLocal,
+    };
   }
 
-  // Alterna permissão de administrador
   function alternarPapelUsuario(id) {
-    const usuarioAlvo = usuarios.find((u) => u.id === id);
-    if (usuarioAlvo?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
+    const usuarioAlvo = usuarios.find((item) => item.id === id);
+
+    if (
+      !usuarioAlvo ||
+      usuarioAlvo.email === usuario?.email ||
+      usuarioAlvo.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()
+    ) {
       return;
     }
 
     setUsuarios((atuais) =>
-      atuais.map((u) => {
-        if (u.id !== id) return u;
-        const novoPapel = u.papel === "admin" ? "estudante" : "admin";
-
-        if (usuario?.id === id) {
-          setUsuario((antigo) => ({ ...antigo, papel: novoPapel }));
-        }
-
-        return { ...u, papel: novoPapel };
-      })
+      atuais.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              papel: item.papel === "admin" ? "estudante" : "admin",
+            }
+          : item
+      )
     );
   }
 
-  // Bloquear / Desbloquear usuário
   function alternarStatusUsuario(id) {
-    const usuarioAlvo = usuarios.find((u) => u.id === id);
-    if (usuarioAlvo?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
+    const usuarioAlvo = usuarios.find((item) => item.id === id);
+
+    if (
+      !usuarioAlvo ||
+      usuarioAlvo.email === usuario?.email ||
+      usuarioAlvo.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()
+    ) {
       return;
     }
 
     setUsuarios((atuais) =>
-      atuais.map((u) => {
-        if (u.id !== id) return u;
-        const novoStatus = u.status === "ativo" ? "bloqueado" : "ativo";
-        return { ...u, status: novoStatus };
-      })
+      atuais.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              status: item.status === "ativo" ? "bloqueado" : "ativo",
+            }
+          : item
+      )
     );
   }
 
-  // Excluir usuário do sistema
   function excluirUsuario(id) {
     if (usuario?.id === id) {
       return {
@@ -360,6 +362,7 @@ export function AuthProvider({ children }) {
         erro: "Você não pode excluir sua própria conta enquanto estiver logado.",
       };
     }
+
     const usuarioParaExcluir = usuarios.find((u) => u.id === id);
     if (
       usuarioParaExcluir?.email?.toLowerCase() ===
@@ -370,7 +373,9 @@ export function AuthProvider({ children }) {
         erro: "A conta principal do Administrador não pode ser excluída.",
       };
     }
-    setUsuarios((atuais) => atuais.filter((u) => u.id !== id));
+
+    setUsuarios((atuais) => atuais.filter((item) => item.id !== id));
+
     return { sucesso: true };
   }
 
@@ -397,11 +402,12 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Hook personalizado para consumir o contexto de autenticação com segurança
 export function useAuth() {
   const contexto = useContext(AuthContext);
+
   if (!contexto) {
     throw new Error("useAuth deve ser utilizado dentro de um AuthProvider");
   }
+
   return contexto;
 }

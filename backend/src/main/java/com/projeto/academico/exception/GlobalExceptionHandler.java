@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -48,16 +49,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<ApiErrorDTO> handleBadRequest(
+    public ResponseEntity<ApiErrorDTO> handleInvalidInput(
             Exception ex,
             HttpServletRequest request) {
         ApiErrorDTO error = new ApiErrorDTO(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Formato de requisição inválido. Verifique os campos e parâmetros enviados.",
+                "JSON, campo ou parâmetro inválido. Confira os tipos e os valores dos enums.",
                 request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -84,6 +85,20 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiErrorDTO> handleResponseStatusException(
+            ResponseStatusException ex,
+            HttpServletRequest request) {
+        var status = ex.getStatusCode();
+        ApiErrorDTO error = new ApiErrorDTO(
+                status.value(),
+                HttpStatus.valueOf(status.value()).getReasonPhrase(),
+                ex.getReason() != null ? ex.getReason() : "Requisição não permitida.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(error);
     }
 
     @ExceptionHandler(Exception.class)
