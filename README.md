@@ -20,10 +20,10 @@ Estudantes universitários que precisam conciliar faculdade, trabalho/estágio e
 
 | Integrante | Disciplina / Perfil | Contribuições Principais |
 | --- | --- | --- |
-| **José Rhawan Michel** (`rhawan81`) | Front-end Frameworks | Estrutura inicial React + Vite, autenticação e controle de acesso (`AuthContext`, `RotaProtegida`), Painel ADM, Timer Pomodoro, vínculo entre atividades e matérias, integração inicial com API e deploy CI/CD. |
-| **Emilly Silva** | Front-end Frameworks | *(Preencher com os módulos/páginas/commits assumidos)* |
-| **Mylena Oliveira** | Front-end Frameworks | *(Preencher com os módulos/páginas/commits assumidos)* |
-| **Ariely Lopes** | Front-end / Back-end (Pessoa 3 — Autenticação) | Responsável pela branch de autenticação (`feature/backend-auth`): implementação do fluxo de autenticação, login e cadastro de usuários, gerenciamento e persistência de sessão (`AuthContext`), proteção de rotas (`RotaProtegida`) e integração de controle de acesso entre front-end e back-end. |
+| **José Rhawan Michel** (`rhawan81`) | Front-end Frameworks | Estrutura inicial React + Vite, Painel Administrativo (`Admin.jsx`), Timer Pomodoro (`Pomodoro.jsx`), vínculo entre atividades e matérias, camada de serviços HTTP/contingência (`http.js`, `fallbackServices.js`, `EstadoRequisicao.jsx`) e pipeline CI/CD. |
+| **Emilly Silva** | Front-end / Back-end | Implementação e integração do CRUD de atividades e matérias (`feature/crud-atividades`, `feature/crud-materias`, `atividadesService.js`, `materiasService.js`) e listagens com filtros e busca. |
+| **Mylena Oliveira** | Front-end Frameworks | Desenvolvimento das páginas de acompanhamento e visualização (`feature/frontend-paginas`: `Dashboard.jsx`, `Calendario.jsx`, `Prioridades.jsx`, `Estatisticas.jsx`), utilitários de prazos (`utils/atividades.js`) e estilização responsiva. |
+| **Ariely Lopes** | Front-end / Back-end (Pessoa 3 — Autenticação) | Responsável pela branch de autenticação (`feature/backend-auth`): implementação do fluxo de autenticação, login e cadastro de usuários (`Login.jsx`), gerenciamento e persistência de sessão (`AuthContext.jsx`), proteção de rotas (`RotaProtegida.jsx`) e integração de controle de acesso entre front-end e back-end. |
 
 *(Se a equipe for interdisciplinar de 4 ou 5 integrantes com Back-end, adicionar os demais membros nesta tabela.)*
 
@@ -193,10 +193,17 @@ A aplicação separa claramente dados iniciais, dados persistidos localmente no 
 ]
 ```
 
-#### Tratamento de Erros HTTP
-- Erros HTTP (`!response.ok`) em `src/services/http.js` tentam extrair `{ "message": "..." }` do corpo JSON e propagam um `Error` com `status` e `isHttpError = true`.
-- Falhas de rede ou timeout (`3000ms` em `src/services/fallbackServices.js`) ativam o modo de contingência exibindo aviso visual com botão **Tentar novamente**.
-- *(Pendente de finalização antes da tag `entrega-av2`: integrar endpoint de autenticação da API escolhida e adicionar tratamento explícito de status `401` e `403` no cliente HTTP.)*
+#### Autenticação (`src/auth/AuthContext.jsx`)
+
+| Operação | Método | Endpoint | Corpo / Parâmetros | Resposta Esperada |
+| --- | --- | --- | --- | --- |
+| Autenticar usuário | `POST` | `/auth/login` | `{ email, senha }` | `200 OK` — `{ usuario, token }` (ou `401`/`403` em acesso inválido) |
+| Cadastrar estudante | `POST` | `/auth/register` | `{ nome, email, senha, papel }` | `201 Created` — Dados do usuário criado |
+
+#### Tratamento de Erros HTTP (`401`, `403`, Timeout e Rede)
+- **Envio de Token:** `src/services/http.js` anexa automaticamente o cabeçalho `Authorization: Bearer <token>` quando a sessão autenticada possui token emitido pela API.
+- **Respostas `401` e `403`:** o cliente HTTP (`http.js`) intercepta respostas `401 Unauthorized` (disparando o evento `auth:nao-autorizado` para encerrar a sessão expirada no `AuthContext`) e `403 Forbidden` (exibindo mensagem clara de permissão negada), além de extrair `{ "message": "..." }` do corpo JSON de erro.
+- **Timeout e Contingência:** falhas de rede ou timeout (`3000ms` em `src/services/fallbackServices.js`) ativam o modo de contingência exibindo o aviso visual em `EstadoRequisicao.jsx` com o botão **Tentar novamente**.
 
 ---
 
@@ -217,11 +224,10 @@ A aplicação separa claramente dados iniciais, dados persistidos localmente no 
 - Todas as leituras remotas (`buscarAtividades` e `buscarMaterias`) passam por `executarComFallback()` (`src/services/fallbackServices.js`) com timeout de 3 segundos.
 - Caso o servidor da API esteja offline ou ocorra falha de rede, a aplicação **não exibe tela em branco**: carrega automaticamente os dados locais compatíveis, exibe o banner *"Servidor indisponível. Mostrando dados de demonstração."* (`EstadoRequisicao.jsx`) e disponibiliza o botão **Tentar novamente** para recuperação imediata quando o serviço retornar.
 
-### Limitações Conhecidas (estado atual do repositório)
-1. **Autenticação ainda local:** o fluxo atual em `src/auth/AuthContext.jsx` realiza autenticação em memória/`localStorage` e ainda precisa ser conectado ao endpoint real de autenticação da opção escolhida (Back-end próprio na Opção B ou DummyJSON na Opção A), removendo senhas fixas do código-fonte e tratando `401`/`403` em `src/services/http.js`.
-2. **Mutações nas páginas:** embora as funções de escrita (`POST`, `PUT`, `PATCH`, `DELETE`) já existam em `atividadesService.js` e `materiasService.js`, as telas `AtividadeForm.jsx`, `Atividades.jsx` e `materias.jsx` ainda persistem alterações diretamente no `localStorage` e devem ser conectadas às funções assíncronas dos serviços.
-3. **Integração auxiliar no Painel ADM:** `src/services/api.js` (usado na aba *Integração API REST* de `Admin.jsx`) ainda aponta para `JSONPlaceholder` como demonstração; antes da entrega final da AV2, deve ser unificado com a opção de integração aprovada pela equipe.
-4. **Dados exclusivamente locais:** o histórico do Timer Pomodoro e a preferência de tema claro/escuro são mantidos apenas no `localStorage` do navegador.
+### Limitações Conhecidas e Decisões de Projeto
+1. **Operação offline / contingência de autenticação e mutações:** quando o servidor back-end (`VITE_API_URL`) não está em execução localmente, o login e as operações de criação, edição e exclusão de atividades/matérias continuam operando em modo de contingência com persistência no `localStorage`, permitindo demonstrar todos os fluxos da interface sem tela em branco.
+2. **Segurança de sessão no navegador:** nenhuma senha em texto puro é armazenada no código-fonte ou no `localStorage` (`organizador-estudos:auth` e `organizador-estudos:usuarios` são sanitizados antes de persistir).
+3. **Dados exclusivamente locais:** o histórico de ciclos concluídos do Timer Pomodoro (`organizador-estudos:pomodoro-historico`) e a preferência de tema claro/escuro (`organizador-estudos:tema`) são mantidos apenas no `localStorage` do navegador do estudante.
 
 ---
 

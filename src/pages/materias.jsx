@@ -14,8 +14,16 @@ import {
     IconeBusca,
     IconeAlerta
 } from "../icons";
-import { buscarMaterias } from "../services/materiasService";
-import { buscarAtividades } from "../services/atividadesService";
+import {
+    buscarMaterias,
+    criarMateria,
+    atualizarMateria,
+    excluirMateriaApi,
+} from "../services/materiasService";
+import {
+    buscarAtividades,
+    atualizarStatusAtividadeApi,
+} from "../services/atividadesService";
 import EstadoRequisicao from "../components/EstadoRequisicao";
 
 function formatarData(dataStr) {
@@ -153,8 +161,8 @@ function Materias() {
         }));
     }
 
-    // Alterna o status de uma atividade
-    function handleToggleStatus(atividadeId) {
+    // Alterna o status de uma atividade via serviço da API (com fallback local)
+    async function handleToggleStatus(atividadeId) {
         const atividade = atividades.find(
             (a) => a.id === atividadeId
         );
@@ -166,25 +174,34 @@ function Materias() {
                 ? "pendente"
                 : "concluida";
 
-        const atualizadas = atividades.map((a) =>
-            a.id === atividadeId
-                ? { ...a, status: novoStatus }
-                : a
-        );
+        try {
+            await atualizarStatusAtividadeApi(atividadeId, novoStatus);
 
-        setAtividades(atualizadas);
-        salvarAtividades(atualizadas);
+            const atualizadas = atividades.map((a) =>
+                a.id === atividadeId
+                    ? { ...a, status: novoStatus }
+                    : a
+            );
 
-        mostrarToast(
-            novoStatus === "concluida"
-                ? `Atividade "${atividade.titulo}" marcada como concluída!`
-                : `Atividade "${atividade.titulo}" reaberta como pendente.`,
-            novoStatus === "concluida" ? "sucesso" : "info"
-        );
+            setAtividades(atualizadas);
+            salvarAtividades(atualizadas);
+
+            mostrarToast(
+                novoStatus === "concluida"
+                    ? `Atividade "${atividade.titulo}" marcada como concluída!`
+                    : `Atividade "${atividade.titulo}" reaberta como pendente.`,
+                novoStatus === "concluida" ? "sucesso" : "info"
+            );
+        } catch (erroAcao) {
+            mostrarToast(
+                erroAcao.message || "Não foi possível atualizar a atividade.",
+                "erro"
+            );
+        }
     }
 
-    // Cadastrar nova matéria
-    function adicionarMateria(e) {
+    // Cadastrar nova matéria via serviço da API (com fallback local)
+    async function adicionarMateria(e) {
         if (e && e.preventDefault) e.preventDefault();
 
         const nomeNormalizado = nomeMateria.trim();
@@ -204,35 +221,40 @@ function Materias() {
             return;
         }
 
-        const novaMateria = {
-            id: `mat-${Date.now()}`,
-            nome: nomeNormalizado,
-            cor:
-                corSelecionada ||
-                CORES_MATERIAS_PADRAO[
-                    materias.length % CORES_MATERIAS_PADRAO.length
-                ],
-        };
-
-        const novasMaterias = [...materias, novaMateria];
-
-        setMaterias(novasMaterias);
-        salvarMaterias(novasMaterias);
-
-        mostrarToast(
-            `Matéria "${nomeNormalizado}" cadastrada com sucesso!`,
-            "sucesso"
-        );
-
-        setNomeMateria("");
-
-        setCorSelecionada(
+        const corFinal =
+            corSelecionada ||
             CORES_MATERIAS_PADRAO[
-                novasMaterias.length % CORES_MATERIAS_PADRAO.length
-            ]
-        );
+                materias.length % CORES_MATERIAS_PADRAO.length
+            ];
 
-        setMostrarFormulario(false);
+        try {
+            const novaMateria = await criarMateria({
+                nome: nomeNormalizado,
+                cor: corFinal,
+            });
+
+            const novasMaterias = [...materias, novaMateria];
+            setMaterias(novasMaterias);
+            salvarMaterias(novasMaterias);
+
+            mostrarToast(
+                `Matéria "${nomeNormalizado}" cadastrada com sucesso!`,
+                "sucesso"
+            );
+
+            setNomeMateria("");
+            setCorSelecionada(
+                CORES_MATERIAS_PADRAO[
+                    novasMaterias.length % CORES_MATERIAS_PADRAO.length
+                ]
+            );
+            setMostrarFormulario(false);
+        } catch (erroAcao) {
+            mostrarToast(
+                erroAcao.message || "Não foi possível cadastrar a matéria.",
+                "erro"
+            );
+        }
     }
 
     // Iniciar edição de matéria
@@ -244,8 +266,8 @@ function Materias() {
         setMateriaEditando({ ...materia });
     }
 
-    // Salvar edição da matéria
-    function salvarEdicaoMateria(e) {
+    // Salvar edição da matéria via serviço da API (com fallback local)
+    async function salvarEdicaoMateria(e) {
         if (e && e.preventDefault) e.preventDefault();
 
         if (!materiaEditando || !materiaEditando.nome.trim()) {
@@ -273,37 +295,49 @@ function Materias() {
             return;
         }
 
-        const materiasAtualizadas = materias.map((m) =>
-            m.id === materiaEditando.id
-                ? { ...materiaEditando, nome: nomeNormalizado }
-                : m
-        );
+        try {
+            const atualizada = await atualizarMateria(materiaEditando.id, {
+                nome: nomeNormalizado,
+                cor: materiaEditando.cor,
+            });
 
-        setMaterias(materiasAtualizadas);
-        salvarMaterias(materiasAtualizadas);
-
-        // Atualiza também as atividades vinculadas se o nome mudou
-        if (
-            materiaAntiga &&
-            materiaAntiga.nome !== nomeNormalizado
-        ) {
-            const atividadesAtualizadas = atividades.map((a) =>
-                a.materia?.toLowerCase() ===
-                materiaAntiga.nome.toLowerCase()
-                    ? { ...a, materia: nomeNormalizado }
-                    : a
+            const materiasAtualizadas = materias.map((m) =>
+                m.id === materiaEditando.id
+                    ? atualizada || { ...materiaEditando, nome: nomeNormalizado }
+                    : m
             );
 
-            setAtividades(atividadesAtualizadas);
-            salvarAtividades(atividadesAtualizadas);
-        }
+            setMaterias(materiasAtualizadas);
+            salvarMaterias(materiasAtualizadas);
 
-        mostrarToast("Matéria atualizada com sucesso!", "sucesso");
-        setMateriaEditando(null);
+            // Atualiza também as atividades vinculadas se o nome mudou
+            if (
+                materiaAntiga &&
+                materiaAntiga.nome !== nomeNormalizado
+            ) {
+                const atividadesAtualizadas = atividades.map((a) =>
+                    a.materia?.toLowerCase() ===
+                    materiaAntiga.nome.toLowerCase()
+                        ? { ...a, materia: nomeNormalizado }
+                        : a
+                );
+
+                setAtividades(atividadesAtualizadas);
+                salvarAtividades(atividadesAtualizadas);
+            }
+
+            mostrarToast("Matéria atualizada com sucesso!", "sucesso");
+            setMateriaEditando(null);
+        } catch (erroAcao) {
+            mostrarToast(
+                erroAcao.message || "Não foi possível atualizar a matéria.",
+                "erro"
+            );
+        }
     }
 
-    // Excluir matéria com confirmação
-    function excluirMateria(id) {
+    // Excluir matéria com confirmação via serviço da API (com fallback local)
+    async function excluirMateria(id) {
         const materia = materias.find((m) => m.id === id);
 
         if (!materia) return;
@@ -325,17 +359,26 @@ function Materias() {
 
         if (!confirmar) return;
 
-        const materiasAtualizadas = materias.filter(
-            (m) => m.id !== id
-        );
+        try {
+            await excluirMateriaApi(id);
 
-        setMaterias(materiasAtualizadas);
-        salvarMaterias(materiasAtualizadas);
+            const materiasAtualizadas = materias.filter(
+                (m) => m.id !== id
+            );
 
-        mostrarToast(
-            `Matéria "${materia.nome}" removida.`,
-            "aviso"
-        );
+            setMaterias(materiasAtualizadas);
+            salvarMaterias(materiasAtualizadas);
+
+            mostrarToast(
+                `Matéria "${materia.nome}" removida.`,
+                "aviso"
+            );
+        } catch (erroAcao) {
+            mostrarToast(
+                erroAcao.message || "Não foi possível excluir a matéria.",
+                "erro"
+            );
+        }
     }
 
     // Resumo de cada matéria

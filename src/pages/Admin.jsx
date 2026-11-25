@@ -164,14 +164,14 @@ export default function Admin() {
     }
   }
 
-  function handleCriarUsuarioSubmit(e) {
+  async function handleCriarUsuarioSubmit(e) {
     e.preventDefault();
     if (!formNovoUsuario.nome.trim() || !formNovoUsuario.email.trim() || !formNovoUsuario.senha) {
       mostrarToast("Preencha todos os campos do usuário.", "erro");
       return;
     }
 
-    const res = cadastrarUsuario(formNovoUsuario);
+    const res = await cadastrarUsuario(formNovoUsuario);
     if (res.sucesso) {
       mostrarToast(`Usuário ${formNovoUsuario.nome} criado com sucesso!`, "sucesso");
       registrarLog(`Novo usuário "${formNovoUsuario.nome}" cadastrado com perfil ${formNovoUsuario.papel}.`, "sucesso");
@@ -248,7 +248,7 @@ export default function Admin() {
       setAtividades(listaCombinada);
       salvarAtividades(listaCombinada);
       mostrarToast(`${tarefasImportadas.length} tarefas importadas da API com sucesso!`, "sucesso");
-      registrarLog(`Importadas ${tarefasImportadas.length} tarefas da API REST JSONPlaceholder.`, "sucesso");
+      registrarLog(`Importadas ${tarefasImportadas.length} tarefas da API REST (${API_URL}).`, "sucesso");
     } catch (err) {
       mostrarToast("Não foi possível importar tarefas da API.", "erro");
       registrarLog(`Erro ao importar dados da API: ${err.message}`, "erro");
@@ -405,7 +405,7 @@ export default function Admin() {
                   <IconeNuvem />
                   <div>
                     <strong>Monitorar API</strong>
-                    <span>Testar JSONPlaceholder e sincronizar</span>
+                    <span>Testar conectividade com a API REST e sincronizar</span>
                   </div>
                 </button>
               </div>
@@ -604,10 +604,10 @@ export default function Admin() {
                 <IconeNuvem />
               </div>
               <div>
-                <h2>Integração com a API REST Externa</h2>
+                <h2>Integração com a API REST Configurada</h2>
                 <p className="texto-suave">
-                  Esta aplicação integra-se com a API <code>JSONPlaceholder</code> através da Fetch API
-                  para sincronização de tarefas remotas e testes de conectividade.
+                  Esta aplicação integra-se com a API REST definida em <code>VITE_API_URL</code> através da Fetch API
+                  para sincronização de atividades e matérias, com fallback automático de contingência.
                 </p>
               </div>
             </div>
@@ -618,8 +618,8 @@ export default function Admin() {
                 <code>{API_URL}</code>
               </div>
               <div className="api-campo-info">
-                <strong>Recurso Consumido:</strong>
-                <code>/todos (tarefas acadêmicas simuladas)</code>
+                <strong>Recursos Consumidos:</strong>
+                <code>/atividades, /materias e /auth/login</code>
               </div>
             </div>
 

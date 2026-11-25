@@ -2,10 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   carregarAtividades,
-  salvarAtividades,
   carregarMaterias,
   garantirMateriaCadastrada,
 } from "../data/storage";
+import {
+  buscarAtividadePorId,
+  criarAtividade,
+  atualizarAtividade,
+  excluirAtividade,
+} from "../services/atividadesService";
+import { buscarMaterias } from "../services/materiasService";
 import { useToast } from "../toast/ToastContext";
 import { IconeVoltar } from "../icons";
 
@@ -26,25 +32,60 @@ function AtividadeForm() {
   const [form, setForm] = useState(FORM_VAZIO);
   const [erros, setErros] = useState({});
   const [materias, setMaterias] = useState([]);
+  const [salvando, setSalvando] = useState(false);
 
   const modoEdicao = Boolean(id);
 
   useEffect(() => {
-    const atividades = carregarAtividades();
-    const materiasCadastradas = carregarMaterias().map((m) => m.nome);
-    const materiasDasAtividades = atividades.map((a) => a.materia);
-    const todas = [...new Set([...materiasCadastradas, ...materiasDasAtividades].filter(Boolean))].sort();
-    setMaterias(todas);
+    let ativo = true;
 
-    if (modoEdicao) {
-      const atividade = atividades.find((a) => String(a.id) === String(id));
-      if (atividade) setForm({ ...FORM_VAZIO, ...atividade });
-    } else {
-      const materiaParam = searchParams.get("materia");
-      if (materiaParam) {
-        setForm((f) => ({ ...f, materia: materiaParam }));
+    async function inicializarFormulario() {
+      const atividadesLocais = carregarAtividades();
+      const materiasLocais = carregarMaterias().map((m) => m.nome);
+      const materiasDasAtividades = atividadesLocais.map((a) => a.materia);
+      const iniciais = [
+        ...new Set([...materiasLocais, ...materiasDasAtividades].filter(Boolean)),
+      ].sort();
+      if (ativo) setMaterias(iniciais);
+
+      try {
+        const resMaterias = await buscarMaterias();
+        if (ativo && Array.isArray(resMaterias?.dados)) {
+          const nomesApi = resMaterias.dados.map((m) => m.nome);
+          const combinadas = [
+            ...new Set([...iniciais, ...nomesApi].filter(Boolean)),
+          ].sort();
+          setMaterias(combinadas);
+        }
+      } catch {
+        // Mantém lista local em caso de contingência
+      }
+
+      if (modoEdicao) {
+        const local = atividadesLocais.find((a) => String(a.id) === String(id));
+        if (local && ativo) {
+          setForm({ ...FORM_VAZIO, ...local });
+        }
+        try {
+          const remota = await buscarAtividadePorId(id);
+          if (remota && ativo) {
+            setForm({ ...FORM_VAZIO, ...remota });
+          }
+        } catch {
+          // Mantém dados locais caso a busca por ID falhe
+        }
+      } else {
+        const materiaParam = searchParams.get("materia");
+        if (materiaParam && ativo) {
+          setForm((f) => ({ ...f, materia: materiaParam }));
+        }
       }
     }
+
+    inicializarFormulario();
+    return () => {
+      ativo = false;
+    };
   }, [id, modoEdicao, searchParams]);
 
   function handleChange(e) {
@@ -61,36 +102,48 @@ function AtividadeForm() {
     return Object.keys(novosErros).length === 0;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!validar()) return;
+    if (!validar() || salvando) return;
 
     const nomeMateriaLimpo = form.materia.trim();
-    // Garante que a matéria digitada fique automaticamente disponível e refletida em Matérias
     garantirMateriaCadastrada(nomeMateriaLimpo);
+    setSalvando(true);
 
-    const atividades = carregarAtividades();
-
-    if (modoEdicao) {
-      const novaLista = atividades.map((a) =>
-        String(a.id) === String(id) ? { ...form, materia: nomeMateriaLimpo, id: a.id } : a
+    try {
+      if (modoEdicao) {
+        await atualizarAtividade(id, { ...form, materia: nomeMateriaLimpo });
+        mostrarToast("Atividade atualizada com sucesso.");
+      } else {
+        await criarAtividade({ ...form, materia: nomeMateriaLimpo });
+        mostrarToast("Atividade cadastrada com sucesso.");
+      }
+      navigate("/atividades");
+    } catch (erro) {
+      mostrarToast(
+        erro.message || "Não foi possível salvar a atividade.",
+        "erro"
       );
-      salvarAtividades(novaLista);
-      mostrarToast("Atividade atualizada com sucesso.");
-    } else {
-      const novaAtividade = { ...form, materia: nomeMateriaLimpo, id: Date.now().toString() };
-      salvarAtividades([...atividades, novaAtividade]);
-      mostrarToast("Atividade cadastrada com sucesso.");
+    } finally {
+      setSalvando(false);
     }
-
-    navigate("/atividades");
   }
 
-  function handleExcluir() {
-    const atividades = carregarAtividades().filter((a) => String(a.id) !== String(id));
-    salvarAtividades(atividades);
-    mostrarToast("Atividade excluída.", "aviso");
-    navigate("/atividades");
+  async function handleExcluir() {
+    if (salvando) return;
+    setSalvando(true);
+    try {
+      await excluirAtividade(id);
+      mostrarToast("Atividade excluída.", "aviso");
+      navigate("/atividades");
+    } catch (erro) {
+      mostrarToast(
+        erro.message || "Não foi possível excluir a atividade.",
+        "erro"
+      );
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
@@ -208,6 +261,7 @@ function AtividadeForm() {
               type="button"
               className="link-excluir"
               onClick={handleExcluir}
+              disabled={salvando}
             >
               Excluir
             </button>
@@ -217,11 +271,16 @@ function AtividadeForm() {
             type="button"
             className="botao-secundario"
             onClick={() => navigate("/atividades")}
+            disabled={salvando}
           >
             Cancelar
           </button>
-          <button type="submit" className="botao-primario">
-            {modoEdicao ? "Salvar alterações" : "Salvar atividade"}
+          <button type="submit" className="botao-primario" disabled={salvando}>
+            {salvando
+              ? "Salvando..."
+              : modoEdicao
+              ? "Salvar alterações"
+              : "Salvar atividade"}
           </button>
         </div>
       </form>

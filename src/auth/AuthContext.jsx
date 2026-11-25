@@ -1,141 +1,232 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { apiFetch } from "../services/http";
 
-// Chaves para persistência no localStorage
+// Chaves para persistência no localStorage (nenhuma senha em texto puro é armazenada)
 const CHAVE_SESSAO = "organizador-estudos:auth";
 const CHAVE_USUARIOS = "organizador-estudos:usuarios";
 
-// Credenciais fixas do Administrador do sistema
+// Função utilitária determinística para verificar credencial em modo contingência sem guardar senha em texto puro
+function gerarHashContingencia(texto) {
+  const str = String(texto || "");
+  let hash = 5381;
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+// Hashes pré-calculados para contingência offline (sem senhas em texto puro no código ou no localStorage)
+const HASH_PERFIL_ADMIN = "2651f8bc";
+const HASH_PERFIL_ESTUDANTE = "cf0bc6c5";
+
+// Perfil padrão do Administrador do sistema (sem campo senha)
 export const ADMIN_PADRAO = {
   id: "usr-admin",
   nome: "Prof. Henrique (ADM)",
   email: "admin@estudos.com",
-  senha: "admin123", // Senha fixa do administrador
   papel: "admin",
   status: "ativo",
   criadoEm: "2026-08-01",
+  credencialHash: HASH_PERFIL_ADMIN,
 };
 
-// Lista inicial de estudantes pré-cadastrados (Integrantes da equipe do projeto)
+// Lista inicial de usuários de contingência (Integrantes da equipe do projeto, sem senhas em texto puro)
 const USUARIOS_INICIAIS = [
   ADMIN_PADRAO,
   {
     id: "usr-2",
     nome: "Emilly Silva",
     email: "emilly@estudos.com",
-    senha: "aluno123",
     papel: "estudante",
     status: "ativo",
     criadoEm: "2026-08-10",
+    credencialHash: HASH_PERFIL_ESTUDANTE,
   },
   {
     id: "usr-3",
-    nome: "Michel Santos",
+    nome: "José Rhawan Michel",
     email: "michel@estudos.com",
-    senha: "aluno123",
     papel: "estudante",
     status: "ativo",
     criadoEm: "2026-08-15",
+    credencialHash: HASH_PERFIL_ESTUDANTE,
   },
   {
     id: "usr-4",
     nome: "Mylena Oliveira",
     email: "mylena@estudos.com",
-    senha: "aluno123",
     papel: "estudante",
     status: "ativo",
     criadoEm: "2026-08-20",
+    credencialHash: HASH_PERFIL_ESTUDANTE,
   },
   {
     id: "usr-5",
+    nome: "Ariely Lopes",
+    email: "ariely@estudos.com",
+    papel: "estudante",
+    status: "ativo",
+    criadoEm: "2026-08-22",
+    credencialHash: HASH_PERFIL_ESTUDANTE,
+  },
+  {
+    id: "usr-6",
     nome: "Aluno Teste",
     email: "aluno@estudos.com",
-    senha: "aluno123",
     papel: "estudante",
     status: "ativo",
     criadoEm: "2026-08-25",
+    credencialHash: HASH_PERFIL_ESTUDANTE,
   },
 ];
+
+function sanitizarUsuarioParaStorage(u) {
+  const { senha: _senhaRemovida, ...resto } = u || {};
+  return {
+    ...resto,
+    credencialHash:
+      resto.credencialHash ||
+      (resto.papel === "admin" ? HASH_PERFIL_ADMIN : HASH_PERFIL_ESTUDANTE),
+  };
+}
+
+function sanitizarSessao(u, token = null) {
+  return {
+    id: u.id || `usr-${Date.now()}`,
+    nome: u.nome || u.name || "Estudante",
+    email: u.email,
+    papel:
+      String(u.papel || u.role || "estudante").toLowerCase() === "admin"
+        ? "admin"
+        : "estudante",
+    status: String(u.status || "ativo").toLowerCase(),
+    criadoEm: u.criadoEm || new Date().toISOString().split("T")[0],
+    ...(token || u.token ? { token: token || u.token } : {}),
+  };
+}
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Usuários cadastrados no sistema
+  // Usuários cadastrados no sistema (sanitizados para nunca guardar senha em texto puro)
   const [usuarios, setUsuarios] = useState(() => {
     try {
       const salvo = localStorage.getItem(CHAVE_USUARIOS);
       if (salvo) {
         const parsed = JSON.parse(salvo);
         if (Array.isArray(parsed)) {
-          // Garante que o admin fixo esteja presente com a senha correta e papel ativo
-          const indexAdmin = parsed.findIndex(
+          const sanitizados = parsed.map(sanitizarUsuarioParaStorage);
+          const indexAdmin = sanitizados.findIndex(
             (u) => u.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()
           );
           if (indexAdmin >= 0) {
-            parsed[indexAdmin] = {
-              ...parsed[indexAdmin],
+            sanitizados[indexAdmin] = {
+              ...sanitizados[indexAdmin],
               ...ADMIN_PADRAO,
             };
-            return parsed;
+            return sanitizados;
           }
-          return [ADMIN_PADRAO, ...parsed];
+          return [ADMIN_PADRAO, ...sanitizados];
         }
       }
     } catch {
       // Caso ocorra erro de parse, retorna padrão
     }
-    localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(USUARIOS_INICIAIS));
-    return USUARIOS_INICIAIS;
+    const iniciais = USUARIOS_INICIAIS.map(sanitizarUsuarioParaStorage);
+    localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(iniciais));
+    return iniciais;
   });
 
-  // Usuário atualmente autenticado
+  // Usuário atualmente autenticado (sem senha)
   const [usuario, setUsuario] = useState(() => {
     try {
       const salvo = localStorage.getItem(CHAVE_SESSAO);
-      return salvo ? JSON.parse(salvo) : null;
+      if (!salvo) return null;
+      const parsed = JSON.parse(salvo);
+      return parsed ? sanitizarSessao(parsed) : null;
     } catch {
       return null;
     }
   });
 
-  // Sincroniza a lista de usuários no LocalStorage sempre que for alterada
+  // Sincroniza a lista de usuários sanitizados no localStorage
   useEffect(() => {
-    localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(usuarios));
+    localStorage.setItem(
+      CHAVE_USUARIOS,
+      JSON.stringify(usuarios.map(sanitizarUsuarioParaStorage))
+    );
   }, [usuarios]);
 
-  // Sincroniza a sessão ativa no LocalStorage
+  // Sincroniza a sessão ativa no localStorage (sem armazenar senha)
   useEffect(() => {
     if (usuario) {
-      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(usuario));
+      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sanitizarSessao(usuario)));
     } else {
       localStorage.removeItem(CHAVE_SESSAO);
     }
   }, [usuario]);
 
-  // Função para autenticar usuário por e-mail e senha
-  function login(email, senha) {
-    const emailLimpo = email.trim().toLowerCase();
+  // Escuta respostas 401 da API para encerrar sessão inválida/expirada automaticamente
+  useEffect(() => {
+    function handleNaoAutorizado() {
+      setUsuario(null);
+    }
+    window.addEventListener("auth:nao-autorizado", handleNaoAutorizado);
+    return () => {
+      window.removeEventListener("auth:nao-autorizado", handleNaoAutorizado);
+    };
+  }, []);
 
-    // Verificação prioritária do Administrador com senha fixa
+  // Autentica usuário tentando primeiro o endpoint da API REST e usando contingência local caso o servidor esteja indisponível
+  async function login(email, senha) {
+    const emailLimpo = email.trim().toLowerCase();
+    const hashDigitado = gerarHashContingencia(senha);
+
+    // 1. Tenta autenticar via API REST (/auth/login)
+    try {
+      const respostaApi = await apiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: emailLimpo, senha }),
+      });
+
+      if (respostaApi) {
+        const dadosUsuarioApi = respostaApi.usuario || respostaApi.user || respostaApi;
+        const dadosSessao = sanitizarSessao(
+          { ...dadosUsuarioApi, email: dadosUsuarioApi.email || emailLimpo },
+          respostaApi.token
+        );
+        setUsuario(dadosSessao);
+        return { sucesso: true, usuario: dadosSessao, origem: "api" };
+      }
+    } catch (erro) {
+      // Se o servidor respondeu explicitamente 401 ou 403, rejeita o login imediatamente
+      if (erro.status === 401 || erro.status === 403) {
+        return {
+          sucesso: false,
+          erro: erro.message || "Credenciais inválidas ou acesso negado.",
+        };
+      }
+      // Caso o servidor esteja offline ou o endpoint ainda não esteja ativo, prossegue em contingência local
+    }
+
+    // 2. Contingência local
     if (emailLimpo === ADMIN_PADRAO.email.toLowerCase()) {
-      if (senha !== ADMIN_PADRAO.senha) {
-        return { sucesso: false, erro: "Senha incorreta. Tente novamente." };
+      if (hashDigitado !== HASH_PERFIL_ADMIN) {
+        return { sucesso: false, erro: "Credenciais inválidas. Verifique sua senha." };
       }
 
-      const adminAtual = usuarios.find(
-        (u) => u.email.toLowerCase() === emailLimpo
-      ) || ADMIN_PADRAO;
+      const adminAtual =
+        usuarios.find((u) => u.email.toLowerCase() === emailLimpo) || ADMIN_PADRAO;
 
-      const dadosSessao = {
-        id: adminAtual.id || ADMIN_PADRAO.id,
-        nome: adminAtual.nome || ADMIN_PADRAO.nome,
+      const dadosSessao = sanitizarSessao({
+        ...adminAtual,
         email: ADMIN_PADRAO.email,
         papel: "admin",
         status: "ativo",
-        criadoEm: adminAtual.criadoEm || ADMIN_PADRAO.criadoEm,
-      };
+      });
 
       setUsuario(dadosSessao);
-      return { sucesso: true, usuario: dadosSessao };
+      return { sucesso: true, usuario: dadosSessao, origem: "contingencia" };
     }
 
     const encontrado = usuarios.find(
@@ -143,76 +234,99 @@ export function AuthProvider({ children }) {
     );
 
     if (!encontrado) {
-      return { sucesso: false, erro: "Usuário não encontrado. Verifique o e-mail." };
+      return {
+        sucesso: false,
+        erro: "Usuário não encontrado. Verifique o e-mail informado.",
+      };
     }
 
-    if (encontrado.senha !== senha) {
-      return { sucesso: false, erro: "Senha incorreta. Tente novamente." };
+    const hashEsperado = encontrado.credencialHash || HASH_PERFIL_ESTUDANTE;
+    if (hashDigitado !== hashEsperado) {
+      return {
+        sucesso: false,
+        erro: "Credenciais inválidas. Verifique sua senha.",
+      };
     }
 
     if (encontrado.status === "bloqueado") {
       return {
         sucesso: false,
-        erro: "Sua conta foi suspensa temporariamente pelo Administrador.",
+        erro: "Acesso negado (403): sua conta está suspensa pelo Administrador.",
       };
     }
 
-    // Cria cópia segura (sem expor a senha no estado da sessão ativa)
-    const dadosSessao = {
-      id: encontrado.id,
-      nome: encontrado.nome,
-      email: encontrado.email,
-      papel: encontrado.papel,
-      status: encontrado.status,
-      criadoEm: encontrado.criadoEm,
-    };
+    const dadosSessao = sanitizarSessao(encontrado);
     setUsuario(dadosSessao);
-    return { sucesso: true, usuario: dadosSessao };
+    return { sucesso: true, usuario: dadosSessao, origem: "contingencia" };
   }
 
-  // Encerra a sessão
+  // Encerra a sessão removendo os dados do localStorage
   function logout() {
     setUsuario(null);
   }
 
-  // Cadastro de novo usuário
-  function cadastrarUsuario({ nome, email, senha, papel = "estudante" }) {
+  // Cadastro de novo usuário (tenta via API e mantém contingência local sem salvar senha em texto puro)
+  async function cadastrarUsuario({ nome, email, senha, papel = "estudante" }) {
     const emailNormalizado = email.trim().toLowerCase();
     const existente = usuarios.some(
       (u) => u.email.toLowerCase() === emailNormalizado
     );
 
     if (existente) {
-      return { sucesso: false, erro: "Este e-mail já está cadastrado no sistema." };
+      return {
+        sucesso: false,
+        erro: "Este e-mail já está cadastrado no sistema.",
+      };
+    }
+
+    let idCriado = `usr-${Date.now()}`;
+
+    try {
+      const criadoApi = await apiFetch("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          nome: nome.trim(),
+          email: emailNormalizado,
+          senha,
+          papel,
+        }),
+      });
+      if (criadoApi?.id) {
+        idCriado = criadoApi.id;
+      }
+    } catch (erro) {
+      if (erro.status === 400 || erro.status === 409) {
+        return { sucesso: false, erro: erro.message };
+      }
+      // Prossegue em modo contingência caso o servidor esteja offline
     }
 
     const novo = {
-      id: `usr-${Date.now()}`,
+      id: idCriado,
       nome: nome.trim(),
       email: emailNormalizado,
-      senha,
       papel,
       status: "ativo",
       criadoEm: new Date().toISOString().split("T")[0],
+      credencialHash: gerarHashContingencia(senha),
     };
 
     setUsuarios((atuais) => [...atuais, novo]);
-    return { sucesso: true, usuario: novo };
+    return { sucesso: true, usuario: sanitizarSessao(novo) };
   }
 
   // Alterna permissão de administrador
   function alternarPapelUsuario(id) {
     const usuarioAlvo = usuarios.find((u) => u.id === id);
     if (usuarioAlvo?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
-      return; // A conta mestre do Administrador mantém sempre o perfil admin
+      return;
     }
 
     setUsuarios((atuais) =>
       atuais.map((u) => {
         if (u.id !== id) return u;
         const novoPapel = u.papel === "admin" ? "estudante" : "admin";
-        
-        // Se for o próprio usuário logado, atualiza também a sessão ativa
+
         if (usuario?.id === id) {
           setUsuario((antigo) => ({ ...antigo, papel: novoPapel }));
         }
@@ -226,7 +340,7 @@ export function AuthProvider({ children }) {
   function alternarStatusUsuario(id) {
     const usuarioAlvo = usuarios.find((u) => u.id === id);
     if (usuarioAlvo?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
-      return; // A conta mestre do Administrador não pode ser bloqueada
+      return;
     }
 
     setUsuarios((atuais) =>
@@ -241,11 +355,20 @@ export function AuthProvider({ children }) {
   // Excluir usuário do sistema
   function excluirUsuario(id) {
     if (usuario?.id === id) {
-      return { sucesso: false, erro: "Você não pode excluir sua própria conta enquanto estiver logado." };
+      return {
+        sucesso: false,
+        erro: "Você não pode excluir sua própria conta enquanto estiver logado.",
+      };
     }
     const usuarioParaExcluir = usuarios.find((u) => u.id === id);
-    if (usuarioParaExcluir?.email?.toLowerCase() === ADMIN_PADRAO.email.toLowerCase()) {
-      return { sucesso: false, erro: "A conta principal do Administrador não pode ser excluída." };
+    if (
+      usuarioParaExcluir?.email?.toLowerCase() ===
+      ADMIN_PADRAO.email.toLowerCase()
+    ) {
+      return {
+        sucesso: false,
+        erro: "A conta principal do Administrador não pode ser excluída.",
+      };
     }
     setUsuarios((atuais) => atuais.filter((u) => u.id !== id));
     return { sucesso: true };

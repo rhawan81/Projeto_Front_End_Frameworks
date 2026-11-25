@@ -8,7 +8,11 @@ import {
   IconeLapis,
   IconeLixeira,
 } from "../icons";
-import { buscarAtividades } from "../services/atividadesService";
+import {
+  buscarAtividades,
+  atualizarStatusAtividadeApi,
+  excluirAtividade,
+} from "../services/atividadesService";
 import { buscarMaterias } from "../services/materiasService";
 import EstadoRequisicao from "../components/EstadoRequisicao.jsx";
 
@@ -103,7 +107,7 @@ function Atividades() {
     salvarAtividades(novaLista);
   }
 
-  function handleConcluir(id) {
+  async function handleConcluir(id) {
     const atividade = atividades.find((a) => a.id === id);
 
     if (!atividade) return;
@@ -111,25 +115,38 @@ function Atividades() {
     const novoStatus =
       atividade.status === "concluida" ? "pendente" : "concluida";
 
-    const novaLista = atividades.map((a) =>
-      a.id === id ? { ...a, status: novoStatus } : a
-    );
+    try {
+      await atualizarStatusAtividadeApi(id, novoStatus);
+      const novaLista = atividades.map((a) =>
+        a.id === id ? { ...a, status: novoStatus } : a
+      );
+      atualizarESalvar(novaLista);
 
-    atualizarESalvar(novaLista);
-
-    mostrarToast(
-      novoStatus === "concluida"
-        ? "Atividade marcada como concluída."
-        : "Atividade reaberta como pendente."
-    );
+      mostrarToast(
+        novoStatus === "concluida"
+          ? "Atividade marcada como concluída."
+          : "Atividade reaberta como pendente."
+      );
+    } catch (erroAcao) {
+      mostrarToast(
+        erroAcao.message || "Não foi possível atualizar a situação.",
+        "erro"
+      );
+    }
   }
 
-  function handleExcluir(id) {
-    const novaLista = atividades.filter((a) => a.id !== id);
-
-    atualizarESalvar(novaLista);
-
-    mostrarToast("Atividade excluída.", "aviso");
+  async function handleExcluir(id) {
+    try {
+      await excluirAtividade(id);
+      const novaLista = atividades.filter((a) => a.id !== id);
+      atualizarESalvar(novaLista);
+      mostrarToast("Atividade excluída.", "aviso");
+    } catch (erroAcao) {
+      mostrarToast(
+        erroAcao.message || "Não foi possível excluir a atividade.",
+        "erro"
+      );
+    }
   }
 
   const materias = useMemo(() => {

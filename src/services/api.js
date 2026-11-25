@@ -1,73 +1,22 @@
-// Base da API externa de demonstração (JSONPlaceholder) usada no Painel ADM
-const API_URL = (
-  import.meta.env.VITE_JSONPLACEHOLDER_URL || "https://jsonplaceholder.typicode.com"
-).replace(/\/$/, "");
+import { apiFetch, API_URL } from "./http";
+import { atividadesContingencia } from "../data/dadosContingencia";
 
 /**
- * Função utilitária centralizada para chamadas HTTP Fetch.
- * Trata erros de rede, parse de JSON e cabeçalhos padrão.
- */
-async function request(endpoint, options = {}) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erro na API (${response.status}): ${response.statusText}`);
-  }
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  const text = await response.text();
-  return text ? JSON.parse(text) : null;
-}
-
-// Operações CRUD do recurso /todos da API REST
-export function buscarTodos() {
-  return request("/todos?userId=1");
-}
-
-export function criarTodo(todo) {
-  return request("/todos", {
-    method: "POST",
-    body: JSON.stringify(todo),
-  });
-}
-
-export function atualizarTodo(id, dados) {
-  return request(`/todos/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(dados),
-  });
-}
-
-export function excluirTodo(id) {
-  return request(`/todos/${id}`, {
-    method: "DELETE",
-  });
-}
-
-/**
- * Testa a conectividade com a API REST configurada.
- * Retorna tempo de resposta e status.
+ * Testa a conectividade com a API REST configurada em VITE_API_URL.
+ * Retorna tempo de resposta, status e amostra do payload.
  */
 export async function testarConexaoApi() {
   const inicio = performance.now();
   try {
-    const dados = await request("/todos/1");
+    const dados = await apiFetch("/atividades");
     const fim = performance.now();
+    const amostra = Array.isArray(dados) ? dados[0] || { total: 0 } : dados;
     return {
       sucesso: true,
       tempoMs: Math.round(fim - inicio),
       url: API_URL,
       status: "Online",
-      exemplo: dados,
+      exemplo: amostra,
     };
   } catch (erro) {
     const fim = performance.now();
@@ -82,29 +31,37 @@ export async function testarConexaoApi() {
 }
 
 /**
- * Busca dados da API e converte para o formato de atividades do Organizador de Estudos.
+ * Busca atividades da API REST configurada (ou contingência compatível)
+ * e converte para o formato de atividades do Organizador de Estudos.
  */
 export async function buscarAtividadesDaApi() {
-  const todos = await request("/todos?_limit=6");
-  const materiasExemplo = [
-    "Algoritmos e Programação",
-    "Banco de Dados",
-    "Sistemas Operacionais",
-    "Engenharia de Software",
-  ];
-  const prioridades = ["alta", "media", "baixa"];
+  let lista = [];
+  try {
+    const resposta = await apiFetch("/atividades");
+    if (Array.isArray(resposta) && resposta.length > 0) {
+      lista = resposta;
+    } else {
+      lista = atividadesContingencia;
+    }
+  } catch {
+    lista = atividadesContingencia;
+  }
 
-  return todos.map((item, index) => ({
-    id: `api-${item.id}-${Date.now()}`,
-    titulo: item.title.charAt(0).toUpperCase() + item.title.slice(1),
-    materia: materiasExemplo[index % materiasExemplo.length],
-    descricao: "Atividade sincronizada da API REST (JSONPlaceholder)",
-    prazo: new Date(Date.now() + (index + 2) * 86400000)
-      .toISOString()
-      .split("T")[0],
-    prioridade: prioridades[index % prioridades.length],
-    status: item.completed ? "concluida" : "pendente",
-    origem: "API Externa",
+  return lista.slice(0, 6).map((item, index) => ({
+    id: `api-${item.id || index + 1}-${Date.now()}`,
+    titulo: item.titulo || `Atividade sincronizada #${index + 1}`,
+    materia:
+      typeof item.materia === "object" && item.materia !== null
+        ? item.materia.nome || "Geral"
+        : item.materia || "Geral",
+    descricao:
+      item.descricao || "Atividade sincronizada a partir da API REST configurada.",
+    prazo:
+      item.prazo ||
+      new Date(Date.now() + (index + 2) * 86400000).toISOString().split("T")[0],
+    prioridade: String(item.prioridade || "media").toLowerCase(),
+    status: String(item.status || "pendente").toLowerCase(),
+    origem: "API REST",
   }));
 }
 

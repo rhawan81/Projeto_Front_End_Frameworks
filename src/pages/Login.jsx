@@ -79,7 +79,7 @@ export default function Login() {
 
     try {
       if (modoCadastro) {
-        const res = cadastrarUsuario({
+        const res = await cadastrarUsuario({
           nome: form.nome,
           email: form.email,
           senha: form.senha,
@@ -96,7 +96,7 @@ export default function Login() {
         setModoCadastro(false);
         setForm((atual) => ({ ...atual, senha: "", confirmarSenha: "" }));
       } else {
-        const res = login(form.email, form.senha);
+        const res = await login(form.email, form.senha);
 
         if (!res.sucesso) {
           setErroGeral(res.erro);
