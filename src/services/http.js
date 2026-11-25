@@ -46,7 +46,9 @@ export async function apiFetch(endpoint, options = {}) {
       // Mantém mensagem padrão caso o corpo não seja JSON
     }
 
-    if (typeof window !== "undefined") {
+    const ehRotaAuth = endpoint.startsWith("/auth/");
+
+    if (typeof window !== "undefined" && !ehRotaAuth) {
       if (response.status === 401) {
         window.dispatchEvent(
           new CustomEvent("auth:nao-autorizado", {

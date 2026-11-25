@@ -22,8 +22,8 @@ Estudantes universitários que precisam conciliar faculdade, trabalho/estágio e
 | --- | --- | --- |
 | **José Rhawan Michel** (`rhawan81`) | Front-end Frameworks | Estrutura inicial React + Vite, Painel Administrativo (`Admin.jsx`), Timer Pomodoro (`Pomodoro.jsx`), vínculo entre atividades e matérias, camada de serviços HTTP/contingência (`http.js`, `fallbackServices.js`, `EstadoRequisicao.jsx`) e pipeline CI/CD. |
 | **Emilly Silva** | Front-end / Back-end | Implementação e integração do CRUD de atividades e matérias (`feature/crud-atividades`, `feature/crud-materias`, `atividadesService.js`, `materiasService.js`) e listagens com filtros e busca. |
-| **Mylena Oliveira** | Front-end Frameworks | Desenvolvimento das páginas de acompanhamento e visualização (`feature/frontend-paginas`: `Dashboard.jsx`, `Calendario.jsx`, `Prioridades.jsx`, `Estatisticas.jsx`), utilitários de prazos (`utils/atividades.js`) e estilização responsiva. |
-| **Ariely Lopes** | Front-end / Back-end (Pessoa 3 — Autenticação) | Responsável pela branch de autenticação (`feature/backend-auth`): implementação do fluxo de autenticação, login e cadastro de usuários (`Login.jsx`), gerenciamento e persistência de sessão (`AuthContext.jsx`), proteção de rotas (`RotaProtegida.jsx`) e integração de controle de acesso entre front-end e back-end. |
+| **Mylena Oliveira** | Front-end / Back-end | Responsável pelas branches `feature/backend-atividades-estatisticas` e `feature/frontend-paginas`: API de atividades filtrada por usuário, endpoint `/estatisticas`, testes de integração, coleção Postman e páginas de visualização (`Dashboard.jsx`, `Calendario.jsx`, `Prioridades.jsx`, `Estatisticas.jsx`). |
+| **Ariely Lopes** | Front-end / Back-end (Pessoa 3 — Autenticação) | Responsável pela branch `feature/pessoa-3-autenticacao`: `AuthController`, autenticação com JWT (`JWT_SECRET`), perfis `ESTUDANTE`/`ADMIN`, respostas `401`/`403` padronizadas em JSON, login/cadastro (`Login.jsx`), sessão (`AuthContext.jsx`) e proteção de rotas (`RotaProtegida.jsx`). |
 
 *(Se a equipe for interdisciplinar de 4 ou 5 integrantes com Back-end, adicionar os demais membros nesta tabela.)*
 
@@ -115,9 +115,16 @@ npm run dev
 | `npm run preview` | Visualiza o build de produção localmente |
 | `npm run lint` | Executa a verificação de lint com ESLint |
 
-### Back-end (Opção B — se utilizado pela equipe)
-- **Repositório do Back-end:** *(inserir link do repositório do back-end aqui)*
-- **Instruções para iniciar o Back-end:** *(inserir comandos, ex.: `./mvnw spring-boot:run`, porta `8080` e configuração de CORS para `http://localhost:5173`)*
+### Back-end Java Spring Boot + Banco H2 (`backend/`)
+O back-end Java 17 + Spring Boot 3.2.5 já está incluído dentro da pasta `backend/` deste mesmo repositório, configurado com **Banco de Dados H2** em arquivo (`jdbc:h2:file:./data/academico_db` — não precisa instalar PostgreSQL nem MySQL para rodar):
+
+```bash
+# Em um segundo terminal, entre na pasta do back-end e inicie o servidor na porta 8080:
+cd backend
+mvn spring-boot:run
+```
+- **API Base:** `http://localhost:8080` (`GET/POST/PUT/PATCH/DELETE /atividades` e `/materias`)
+- **Console do Banco H2:** `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:file:./data/academico_db`, User: `sa`, Password em branco)
 
 ---
 

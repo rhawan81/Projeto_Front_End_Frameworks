@@ -199,14 +199,14 @@ export function AuthProvider({ children }) {
         return { sucesso: true, usuario: dadosSessao, origem: "api" };
       }
     } catch (erro) {
-      // Se o servidor respondeu explicitamente 401 ou 403, rejeita o login imediatamente
-      if (erro.status === 401 || erro.status === 403) {
+      // Se o endpoint /auth/login existir e retornar 403 explícito de conta bloqueada, rejeita
+      if (erro.status === 403) {
         return {
           sucesso: false,
-          erro: erro.message || "Credenciais inválidas ou acesso negado.",
+          erro: erro.message || "Acesso negado (403).",
         };
       }
-      // Caso o servidor esteja offline ou o endpoint ainda não esteja ativo, prossegue em contingência local
+      // Caso o servidor esteja offline ou /auth/login não esteja mapeado no SecurityConfig, valida pela contingência local
     }
 
     // 2. Contingência local
