@@ -23,6 +23,7 @@ Estudantes universitários que precisam conciliar faculdade, trabalho/estágio e
 | **José Rhawan Michel** (`rhawan81`) | Front-end Frameworks | Estrutura inicial React + Vite, autenticação e controle de acesso (`AuthContext`, `RotaProtegida`), Painel ADM, Timer Pomodoro, vínculo entre atividades e matérias, integração inicial com API e deploy CI/CD. |
 | **Emilly Silva** | Front-end Frameworks | *(Preencher com os módulos/páginas/commits assumidos)* |
 | **Mylena Oliveira** | Front-end Frameworks | *(Preencher com os módulos/páginas/commits assumidos)* |
+| **Ariely Lopes** | Front-end / Back-end (Pessoa 3 — Autenticação) | Responsável pela branch de autenticação (`feature/backend-auth`): implementação do fluxo de autenticação, login e cadastro de usuários, gerenciamento e persistência de sessão (`AuthContext`), proteção de rotas (`RotaProtegida`) e integração de controle de acesso entre front-end e back-end. |
 
 *(Se a equipe for interdisciplinar de 4 ou 5 integrantes com Back-end, adicionar os demais membros nesta tabela.)*
 
