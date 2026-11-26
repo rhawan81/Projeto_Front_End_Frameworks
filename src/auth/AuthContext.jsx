@@ -6,16 +6,16 @@ const CHAVE_USUARIOS = "organizador-estudos:usuarios";
 
 // Função utilitária determinística para verificar credencial em modo contingência offline sem guardar senha em texto puro
 function gerarHashContingencia(texto) {
-  const str = String(texto || "");
-  let hash = 5381;
-  for (let i = 0; i < str.length; i += 1) {
-    hash = (hash * 33) ^ str.charCodeAt(i);
+  const s = String(texto || "");
+  let h = 0;
+  for (let i = 0; i < s.length; i += 1) {
+    h = (h * 31 + s.charCodeAt(i)) % 1000000007;
   }
-  return (hash >>> 0).toString(16);
+  return String(h);
 }
 
-const HASH_PERFIL_ADMIN = "2651f8bc";
-const HASH_PERFIL_ESTUDANTE = "cf0bc6c5";
+const HASH_PERFIL_ADMIN = "694790411";
+const HASH_PERFIL_ESTUDANTE = "28500407";
 
 export const ADMIN_PADRAO = {
   id: "usr-admin",
@@ -88,16 +88,20 @@ function limparUsuario(usuario) {
   if (!usuario) return null;
 
   const { senha: _s, password: _p, ...dados } = usuario;
+  const papelNormalizado = normalizarPapel(dados.papel);
+  const ehContaPadrao = USUARIOS_INICIAIS.some(
+    (u) => u.email.toLowerCase() === String(dados.email || "").toLowerCase()
+  );
 
   return {
     ...dados,
-    papel: normalizarPapel(dados.papel),
+    papel: papelNormalizado,
     status: dados.status || "ativo",
-    credencialHash:
-      dados.credencialHash ||
-      (normalizarPapel(dados.papel) === "admin"
+    credencialHash: ehContaPadrao
+      ? papelNormalizado === "admin"
         ? HASH_PERFIL_ADMIN
-        : HASH_PERFIL_ESTUDANTE),
+        : HASH_PERFIL_ESTUDANTE
+      : dados.credencialHash || HASH_PERFIL_ESTUDANTE,
   };
 }
 
