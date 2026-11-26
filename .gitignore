@@ -10,6 +10,8 @@ data/
 backend/data/
 *.mv.db
 *.trace.db
+Relatorio_AV2.html
+Guia_Apresentacao_AV2.html
 
 # Logs
 logs
