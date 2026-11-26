@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório Técnico AV2 — Organizador de Estudos</title>
+  <style>
+    :root {
+      --bg-page: #f1f5f9;
+      --paper: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --navy: #0b162c;
+      --accent: #0284c7;
+      --teal: #0d9488;
+      --ok-bg: #dcfce7;
+      --ok-fg: #166534;
+      --warn-bg: #fef3c7;
+      --warn-fg: #92400e;
+      --err-bg: #fee2e2;
+      --err-fg: #991b1b;
+      --code-bg: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px 48px;
+      background: var(--bg-page);
+      color: var(--ink);
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.55;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Barra de ação (oculta na impressão/PDF) */
+    .toolbar {
+      max-width: 210mm;
+      margin: 0 auto 16px;
+      background: var(--navy);
+      color: #f8fafc;
+      padding: 12px 18px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+    }
+
+    .toolbar-info {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .toolbar-info strong {
+      color: #ffffff;
+    }
+
+    .btn-pdf {
+      background: linear-gradient(135deg, #0ea5e9, #10b981);
+      color: #ffffff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn-pdf:hover {
+      opacity: 0.92;
+    }
+
+    /* Folha A4 */
+    .documento {
+      max-width: 210mm;
+      margin: 0 auto;
+      background: var(--paper);
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .capa {
+      background: linear-gradient(135deg, #091326 0%, #102446 65%, #0d3b66 100%);
+      color: #ffffff;
+      padding: 34px 36px 28px;
+      border-bottom: 4px solid #14b8a6;
+    }
+
+    .capa-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: #5eead4;
+      margin-bottom: 8px;
+    }
+
+    .capa h1 {
+      margin: 0 0 8px;
+      font-size: 24pt;
+      line-height: 1.15;
+      letter-spacing: -0.4px;
+    }
+
+    .capa-sub {
+      margin: 0 0 20px;
+      font-size: 11pt;
+      color: #cbd5e1;
+      max-width: 640px;
+    }
+
+    .capa-meta {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 9pt;
+    }
+
+    .capa-meta div span {
+      display: block;
+      color: #94a3b8;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .capa-meta div strong {
+      color: #f8fafc;
+      font-weight: 600;
+    }
+
+    .conteudo {
+      padding: 26px 34px 34px;
+    }
+
+    h2 {
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      font-size: 13.5pt;
+      color: var(--navy);
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--navy);
+      color: #5eead4;
+      font-size: 10pt;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      margin: 14px 0 6px;
+      font-size: 11pt;
+      color: #1e293b;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 10px;
+      color: #1e293b;
+    }
+
+    ul, ol {
+      margin: 4px 0 12px;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    code {
+      font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+      font-size: 9pt;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #0369a1;
+    }
+
+    .diagrama-box {
+      margin: 12px 0 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      text-align: center;
+      break-inside: avoid;
+    }
+
+    .diagrama-box svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 10px 0 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #ffffff;
+      break-inside: avoid;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 10.5pt;
+    }
+
+    .card p, .card li {
+      font-size: 9.5pt;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 9.2pt;
+    }
+
+    thead th {
+      background: var(--navy);
+      color: #ffffff;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+    }
+
+    tbody td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    tbody tr {
+      break-inside: avoid;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 8.2pt;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-ok {
+      background: var(--ok-bg);
+      color: var(--ok-fg);
+    }
+
+    .badge-warn {
+      background: var(--warn-bg);
+      color: var(--warn-fg);
+    }
+
+    .badge-err {
+      background: var(--err-bg);
+      color: var(--err-fg);
+    }
+
+    .alerta {
+      border-left: 4px solid #d97706;
+      background: #fffbeb;
+      border-top: 1px solid #fde68a;
+      border-right: 1px solid #fde68a;
+      border-bottom: 1px solid #fde68a;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin: 14px 0;
+      break-inside: avoid;
+    }
+
+    .alerta strong {
+      color: #92400e;
+    }
+
+    .destaque-info {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      border-top: 1px solid #bae6fd;
+      border-right: 1px solid #bae6fd;
+      border-bottom: 1px solid #bae6fd;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin: 14px 0;
+      break-inside: avoid;
+    }
+
+    .rodape-doc {
+      margin-top: 26px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 8.5pt;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .quebra-pagina {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    @page {
+      size: A4;
+      margin: 12mm 12mm 14mm 12mm;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+        font-size: 9.6pt;
+      }
+
+      .toolbar {
+        display: none !important;
+      }
+
+      .documento {
+        max-width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .capa {
+        padding: 24px 26px 20px;
+      }
+
+      .conteudo {
+        padding: 18px 20px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-info">
+      <strong>Relatório AV2 pronto para PDF:</strong> clique no botão ao lado e escolha <strong>"Salvar como PDF"</strong> (com <em>Gráficos de segundo plano</em> ativado).
+    </div>
+    <button type="button" class="btn-pdf" onclick="window.print()">Salvar como PDF (Ctrl + P)</button>
+  </div>
+
+  <main class="documento">
+    <header class="capa">
+      <div class="capa-eyebrow">Ciência da Computação • 2026.2 • Front-end Frameworks</div>
+      <h1>Relatório Técnico — Entrega AV2</h1>
+      <p class="capa-sub">
+        Detalhamento completo da evolução do projeto <strong>Organizador de Estudos</strong> da AV1 para a AV2: arquitetura, integração com API REST via Fetch, estados de requisição, contingência local, autenticação, rotas protegidas e checklist final.
+      </p>
+      <div class="capa-meta">
+        <div>
+          <span>Projeto</span>
+          <strong>Organizador de Estudos</strong>
+        </div>
+        <div>
+          <span>Stack</span>
+          <strong>React 19 • JS • Vite 8</strong>
+        </div>
+        <div>
+          <span>Repositório</span>
+          <strong>Projeto_Front_End_Frameworks</strong>
+        </div>
+        <div>
+          <span>Estágio</span>
+          <strong>Evolução AV1 → AV2</strong>
+        </div>
+      </div>
+    </header>
+
+    <div class="conteudo">
+      <!-- 1. VISÃO GERAL -->
+      <h2><span class="num">1</span> Visão Geral e Arquitetura da AV2</h2>
+      <p>
+        Seguindo a regra central da disciplina, a AV2 preserva o tema, o repositório único e toda a base funcional da AV1, evoluindo a aplicação para uma arquitetura em camadas com <strong>rotas protegidas</strong>, <strong>controle de acesso por perfil (RBAC)</strong>, <strong>camada de serviços HTTP com <code>fetch</code></strong>, <strong>estados visíveis de requisição</strong> e <strong>estratégia de contingência local</strong>.
+      </p>
+
+      <div class="diagrama-box">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama de Arquitetura AV2">
+          <defs>
+            <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+            </marker>
+          </defs>
+          <!-- Caixa 1 -->
+          <rect x="10" y="75" width="115" height="62" rx="8" fill="#0b162c" />
+          <text x="67" y="102" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">App.jsx</text>
+          <text x="67" y="120" text-anchor="middle" fill="#94a3b8" font-size="10">React Router (13 rotas)</text>
+
+          <!-- Seta 1->2 -->
+          <line x1="125" y1="106" x2="155" y2="106" stroke="#475569" stroke-width="2" marker-end="url(#seta)" />
+
+          <!-- Caixa 2 -->
+          <rect x="158" y="20" width="135" height="48" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+          <text x="225" y="41" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="700">/login (Pública)</text>
+          <text x="225" y="56" text-anchor="middle" fill="#475569" font-size="9.5">Login + Cadastro</text>
+
+          <rect x="158" y="82" width="135" height="58" rx="8" fill="#0d9488" />
+          <text x="225" y="107" text-anchor="middle" fill="#ffffff" font-size="11.5" font-weight="700">RotaProtegida</text>
+          <text x="225" y="124" text-anchor="middle" fill="#ccfbf1" font-size="9.5">AuthContext + RBAC</text>
+
+          <line x1="125" y1="90" x2="156" y2="48" stroke="#475569" stroke-width="1.5" marker-end="url(#seta)" />
+
+          <!-- Seta 2->3 -->
+          <line x1="293" y1="111" x2="323" y2="111" stroke="#475569" stroke-width="2" marker-end="url(#seta)" />
+
+          <!-- Caixa 3 -->
+          <rect x="326" y="66" width="150" height="88" rx="8" fill="#ffffff" stroke="#0b162c" stroke-width="1.5" />
+          <text x="401" y="88" text-anchor="middle" fill="#0b162c" font-size="11.5" font-weight="700">Páginas + Layout</text>
+          <text x="401" y="105" text-anchor="middle" fill="#475569" font-size="9.5">Home, Dashboard, Atividades,</text>
+          <text x="401" y="119" text-anchor="middle" fill="#475569" font-size="9.5">Matérias, Calendário, Admin...</text>
+          <rect x="338" y="128" width="126" height="20" rx="4" fill="#fef3c7" stroke="#f59e0b" />
+          <text x="401" y="141" text-anchor="middle" fill="#92400e" font-size="9" font-weight="700">EstadoRequisicao.jsx</text>
+
+          <!-- Seta 3->4 -->
+          <line x1="476" y1="110" x2="506" y2="110" stroke="#475569" stroke-width="2" marker-end="url(#seta)" />
+
+          <!-- Caixa 4 -->
+          <rect x="509" y="68" width="115" height="84" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="566" y="88" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="700">src/services/</text>
+          <text x="566" y="104" text-anchor="middle" fill="#334155" font-size="9.5">atividadesService</text>
+          <text x="566" y="118" text-anchor="middle" fill="#334155" font-size="9.5">materiasService</text>
+          <text x="566" y="132" text-anchor="middle" fill="#334155" font-size="9.5">fallbackServices</text>
+          <text x="566" y="145" text-anchor="middle" fill="#1d4ed8" font-size="9.5" font-weight="700">http.js (fetch)</text>
+
+          <!-- Seta 4->5a e 5b -->
+          <line x1="624" y1="90" x2="649" y2="55" stroke="#0284c7" stroke-width="2" marker-end="url(#seta)" />
+          <line x1="624" y1="130" x2="649" y2="164" stroke="#d97706" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#seta)" />
+
+          <!-- Caixa 5a -->
+          <rect x="652" y="22" width="98" height="62" rx="8" fill="#0284c7" />
+          <text x="701" y="47" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">API REST</text>
+          <text x="701" y="63" text-anchor="middle" fill="#e0f2fe" font-size="9">VITE_API_URL</text>
+          <text x="701" y="76" text-anchor="middle" fill="#e0f2fe" font-size="8.5">localhost:8080</text>
+
+          <!-- Caixa 5b -->
+          <rect x="652" y="136" width="98" height="62" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="701" y="159" text-anchor="middle" fill="#92400e" font-size="10.5" font-weight="700">Contingência</text>
+          <text x="701" y="175" text-anchor="middle" fill="#78350f" font-size="9">storage.js /</text>
+          <text x="701" y="188" text-anchor="middle" fill="#78350f" font-size="9">localStorage</text>
+        </svg>
+      </div>
+
+      <!-- 2. CAMADA DE SERVIÇOS E API -->
+      <h2><span class="num">2</span> Camada de Integração com API REST (<code>src/services/</code>)</h2>
+      <p>
+        Todas as chamadas HTTP foram centralizadas na pasta <code>src/services/</code> usando a <strong>Fetch API</strong> nativa e configuração única da URL-base em <code>.env.example</code>.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Cliente HTTP — <code>src/services/http.js</code></h3>
+          <ul>
+            <li>Centraliza <code>API_URL</code> via <code>import.meta.env.VITE_API_URL || "http://localhost:8080"</code>.</li>
+            <li>Envia automaticamente <code>Authorization: Bearer &lt;token&gt;</code> e <code>Content-Type: application/json</code>.</li>
+            <li>Trata explicitamente respostas <code>401</code> (encerra sessão expirada), <code>403</code> (acesso negado) e <code>204 No Content</code>.</li>
+            <li>Extrai <code>message</code> do corpo JSON de erro e propaga <code>erro.status</code> e <code>erro.isHttpError = true</code>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Contingência — <code>src/services/fallbackServices.js</code></h3>
+          <ul>
+            <li>Aplica timeout de <strong>3.000 ms</strong> (<code>comTempoLimite</code>) para evitar telas travadas.</li>
+            <li>Retorna contrato padronizado: <code>{ dados, origem, erro }</code>.</li>
+            <li>Diferencia <code>origem: "api"</code>, <code>"contingencia"</code> e <code>"local"</code>.</li>
+            <li>Se o servidor cair ou der timeout, aciona o fallback local automaticamente.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Atividades — <code>atividadesService.js</code></h3>
+          <ul>
+            <li>Normalização bidirecional (<code>normalizarParaFront</code> e <code>normalizarParaApi</code>) alinhando caixa de <code>status</code> e <code>prioridade</code>.</li>
+            <li><code>buscarAtividades</code> (<code>GET /atividades</code> com query <code>materia</code> e <code>situacao</code>) + atualização do cache local.</li>
+            <li>CRUD mapeado: <code>buscarAtividadePorId</code> (<code>GET</code>), <code>criarAtividade</code> (<code>POST</code>), <code>atualizarAtividade</code> (<code>PUT</code>), <code>atualizarStatusAtividadeApi</code> (<code>PATCH</code>) e <code>excluirAtividade</code> (<code>DELETE</code>).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Matérias — <code>materiasService.js</code> &amp; <code>api.js</code></h3>
+          <ul>
+            <li><code>materiasService.js</code>: <code>buscarMaterias</code> (<code>GET /materias</code>), <code>criarMateria</code> (<code>POST</code>), <code>atualizarMateria</code> (<code>PUT</code>) e <code>excluirMateriaApi</code> (<code>DELETE</code>), conectados à página <code>materias.jsx</code>.</li>
+            <li><code>api.js</code>: diagnóstico de conectividade/latência e sincronização unificados com a <code>VITE_API_URL</code> no Painel ADM.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 3. ESTADOS DE REQUISIÇÃO -->
+      <h2><span class="num">3</span> Estados Visíveis de Requisição e Recuperação</h2>
+      <p>
+        Foi implementado o componente reutilizável <code>src/components/EstadoRequisicao.jsx</code>, integrado às páginas <strong>Home</strong>, <strong>Dashboard</strong>, <strong>Atividades</strong>, <strong>Matérias</strong>, <strong>Calendário</strong>, <strong>Prioridades</strong> e <strong>Estatísticas</strong> (todas usando <code>useCallback</code> em <code>carregarDados</code> para suportar reexecução).
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Condição</th>
+            <th>Comportamento Visual</th>
+            <th>Ação de Recuperação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Carregando</strong></td>
+            <td><code>carregando === true</code></td>
+            <td>Exibe spinner + <em>"Carregando dados..."</em> (<code>role="status"</code>)</td>
+            <td>Aguarda resposta ou timeout de 3s</td>
+          </tr>
+          <tr>
+            <td><strong>Contingência</strong></td>
+            <td><code>origem === "contingencia"</code></td>
+            <td>Banner de aviso <em>"Servidor indisponível. Mostrando dados de demonstração."</em> mantendo a interface operante</td>
+            <td>Botão <strong>Tentar novamente</strong> refaz a requisição</td>
+          </tr>
+          <tr>
+            <td><strong>Erro</strong></td>
+            <td><code>erro !== null</code></td>
+            <td>Caixa de alerta (<code>role="alert"</code>) com a mensagem do erro</td>
+            <td>Botão <strong>Tentar novamente</strong> (<code>onTentarNovamente</code>)</td>
+          </tr>
+          <tr>
+            <td><strong>Vazio / Sucesso</strong></td>
+            <td><code>vazio</code> ou lista normal</td>
+            <td>Mensagem contextual de lista vazia ou renderização completa dos dados</td>
+            <td>Atalho direto para cadastrar novo item</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 4. AUTENTICAÇÃO E RBAC -->
+      <h2 class="quebra-pagina"><span class="num">4</span> Autenticação, Sessão e Rotas Protegidas</h2>
+      <ul>
+        <li><strong>Contexto Global (<code>src/auth/AuthContext.jsx</code>):</strong> expõe <code>usuario</code>, <code>autenticado</code>, <code>isAdmin</code>, <code>login</code>, <code>logout</code>, <code>cadastrarUsuario</code> e ações administrativas (<code>alternarPapelUsuario</code>, <code>alternarStatusUsuario</code>, <code>excluirUsuario</code>).</li>
+        <li><strong>Persistência de Sessão no Refresh:</strong> grava a sessão ativa na chave <code>organizador-estudos:auth</code> sem incluir o campo <code>senha</code> no objeto <code>dadosSessao</code>, restaurando o usuário ao recarregar a página.</li>
+        <li><strong>Formulário de Login e Cadastro (<code>src/pages/Login.jsx</code>):</strong> formulário controlado com alternância de modo, validação de nome, formato de e-mail, senha mínima de 6 caracteres, confirmação de senha, mensagens de erro por campo, alerta geral e redirecionamento pós-login (<code>location.state?.from?.pathname || "/"</code>).</li>
+        <li><strong>Proteção de Rotas (<code>src/auth/RotaProtegida.jsx</code>):</strong> protege todas as 12 rotas internas em <code>App.jsx</code>; bloqueia acesso sem sessão redirecionando para <code>/login</code> e restringe <code>/admin</code> (<code>somenteAdmin</code>) para perfil administrador com toast explicativo.</li>
+        <li><strong>Logout:</strong> integrado tanto na <code>Sidebar.jsx</code> (desktop) quanto na <code>BarraInferior.jsx</code> (mobile), encerrando a sessão local e voltando para <code>/login</code>.</li>
+      </ul>
+
+      <!-- 5. MÓDULOS VERTICAIS -->
+      <h2><span class="num">5</span> Funcionalidades Verticais e Módulos Implementados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Módulo / Rota</th>
+            <th>Arquivos Principais</th>
+            <th>O que foi implementado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Painel ADM</strong><br /><code>/admin</code></td>
+            <td><code>Admin.jsx</code>, <code>api.js</code></td>
+            <td>Área restrita com 4 abas: métricas globais + log de auditoria; gestão de usuários (busca, filtro por papel, cadastro, promoção/rebaixamento, bloqueio e exclusão); cadastro de matérias; teste/importação de API.</td>
+          </tr>
+          <tr>
+            <td><strong>Timer Pomodoro</strong><br /><code>/pomodoro</code></td>
+            <td><code>Pomodoro.jsx</code></td>
+            <td>Ciclos de Foco (25m), Pausa Curta (5m) e Pausa Longa (15m), vínculo com matéria, alarme sonoro via Web Audio API e histórico salvo em <code>localStorage</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Calendário</strong><br /><code>/calendario</code></td>
+            <td><code>Calendario.jsx</code>, <code>utils/atividades.js</code></td>
+            <td>Grade mensal de 42 dias, navegação entre meses, botão <em>Hoje</em>, marcadores por prioridade/atraso/conclusão e painel expansível de detalhes por dia.</td>
+          </tr>
+          <tr>
+            <td><strong>Prioridades</strong><br /><code>/prioridades</code></td>
+            <td><code>Prioridades.jsx</code>, <code>utils/atividades.js</code></td>
+            <td>Bloco automático de tarefas urgentes (atrasadas ou com prazo em até 3 dias), filtro por situação e colunas organizadas por nível (Alta, Média e Baixa).</td>
+          </tr>
+          <tr>
+            <td><strong>Estatísticas</strong><br /><code>/estatisticas</code></td>
+            <td><code>Estatisticas.jsx</code></td>
+            <td>Indicadores gerais, gráfico de barras por matéria e gráficos de rosca construídos em SVG puro (por prioridade e por situação).</td>
+          </tr>
+          <tr>
+            <td><strong>Navegação &amp; UX</strong></td>
+            <td><code>Topbar.jsx</code>, <code>Sidebar.jsx</code>, <code>BarraInferior.jsx</code>, <code>ThemeContext.jsx</code>, <code>Configuracoes.jsx</code></td>
+            <td>Busca global via query params (<code>?busca=...</code>), central de alertas de prazos no sino da Topbar, tema claro/escuro persistido e responsividade mobile.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 6. EVOLUÇÃO AV1 -> AV2 -->
+      <h2><span class="num">6</span> Quadro Comparativo: Evolução da AV1 para a AV2</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspecto</th>
+            <th>Situação na AV1</th>
+            <th>Evolução na AV2</th>
+            <th>Evidência</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Dados</strong></td>
+            <td><code>dados.json</code> local + <code>localStorage</code></td>
+            <td>Consumo via <code>fetch</code> centralizado em serviços com normalização e fallback</td>
+            <td><code>http.js</code>, <code>atividadesService.js</code>, <code>materiasService.js</code></td>
+          </tr>
+          <tr>
+            <td><strong>Autenticação</strong></td>
+            <td>Não implementada</td>
+            <td>Login validado, sessão persistida no refresh, logout e rotas protegidas (RBAC)</td>
+            <td><code>AuthContext.jsx</code>, <code>RotaProtegida.jsx</code>, <code>Login.jsx</code></td>
+          </tr>
+          <tr>
+            <td><strong>Estados da UI</strong></td>
+            <td>Lista vazia e validação de formulário</td>
+            <td>Carregamento, erro, contingência e ação de tentar novamente</td>
+            <td><code>EstadoRequisicao.jsx</code>, <code>fallbackServices.js</code></td>
+          </tr>
+          <tr>
+            <td><strong>Documentação</strong></td>
+            <td>README inicial</td>
+            <td>README completo com 11 seções obrigatórias (contrato, evolução e uso de IA)</td>
+            <td><code>README.md</code>, <code>.env.example</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 7. CHECKLIST DE ENTREGA -->
+      <h2><span class="num">7</span> Status Final do Checklist da AV2</h2>
+      <div class="destaque-info">
+        <strong>Código Front-end 100% adequado ao roteiro:</strong> todos os requisitos técnicos da AV2 foram implementados e revisados. Antes do envio final no Teams, confira apenas as tags e o link do repositório de Back-end no GitHub.
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Item do Roteiro</th>
+            <th>Status</th>
+            <th>Implementação no Projeto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Leitura e Mutações pela API (<code>GET</code>/<code>POST</code>/<code>PUT</code>/<code>PATCH</code>/<code>DELETE</code>)</td>
+            <td><span class="badge badge-ok">Concluído</span></td>
+            <td><code>AtividadeForm.jsx</code>, <code>Atividades.jsx</code> e <code>materias.jsx</code> consomem <code>atividadesService.js</code> e <code>materiasService.js</code> com fallback local automático.</td>
+          </tr>
+          <tr>
+            <td>Autenticação via API + Sessão sem senhas no código/storage</td>
+            <td><span class="badge badge-ok">Concluído</span></td>
+            <td><code>AuthContext.jsx</code> autentica via <code>POST /auth/login</code> com contingência offline por hash, sem armazenar senhas em texto puro no repositório ou no <code>localStorage</code>.</td>
+          </tr>
+          <tr>
+            <td>Token e tratamento de <code>401</code> / <code>403</code></td>
+            <td><span class="badge badge-ok">Concluído</span></td>
+            <td><code>http.js</code> envia cabeçalho <code>Authorization: Bearer</code> e trata respostas <code>401</code> (limpa sessão expirada) e <code>403</code> (mensagem de permissão negada).</td>
+          </tr>
+          <tr>
+            <td>Unificação na <code>VITE_API_URL</code> + Contingência Local</td>
+            <td><span class="badge badge-ok">Concluído</span></td>
+            <td><code>http.js</code>, <code>api.js</code>, <code>fallbackServices.js</code> e <code>EstadoRequisicao.jsx</code> centralizados em <code>VITE_API_URL</code> com botão <em>Tentar novamente</em>.</td>
+          </tr>
+          <tr>
+            <td>README, Commits e Tags Git (<code>entrega-av1</code> / <code>entrega-av2</code>)</td>
+            <td><span class="badge badge-warn">Conferir no Git</span></td>
+            <td><code>README.md</code> atualizado com as 11 seções e os 4 integrantes (Rhawan, Emilly, Mylena e Ariely); criar e dar push na tag <code>entrega-av2</code> no GitHub.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 8. ROTEIRO DE APRESENTAÇÃO -->
+      <h2><span class="num">8</span> Roteiro Sugerido para a Apresentação Presencial (7 min)</h2>
+      <div class="destaque-info">
+        <ul>
+          <li><strong>0:00 – 1:00 (Contexto e Evolução):</strong> problema atendido, público-alvo e tabela AV1 → AV2 no mesmo repositório.</li>
+          <li><strong>1:00 – 2:00 (Autenticação e Rotas):</strong> tentar acessar rota protegida sem login, autenticar, atualizar a página (F5), mostrar área exclusiva <code>/admin</code> e fazer logout.</li>
+          <li><strong>2:00 – 4:00 (API e Funcionalidades):</strong> demonstrar listagem, filtros, cadastro/edição de atividades e matérias, Pomodoro, Calendário, Prioridades e Estatísticas.</li>
+          <li><strong>4:00 – 5:00 (Resiliência):</strong> mostrar <code>EstadoRequisicao</code> em carregamento e com servidor offline (banner de contingência + botão <em>Tentar novamente</em>).</li>
+          <li><strong>5:00 – 7:00 (Perguntas do Professor):</strong> abrir e explicar onde o estado muda (<code>useState</code> / <code>AuthContext</code>), o fluxo de uma requisição (<code>http.js</code> → <code>services</code> → página), a <code>RotaProtegida</code> e o uso transparente de IA registrado no <code>README.md</code>.</li>
+        </ul>
+      </div>
+
+      <footer class="rodape-doc">
+        <span>Organizador de Estudos — Relatório Técnico AV2</span>
+        <span>Front-end Frameworks • Ciência da Computação • 2026.2</span>
+      </footer>
+    </div>
+  </main>
+</body>
+</html>
